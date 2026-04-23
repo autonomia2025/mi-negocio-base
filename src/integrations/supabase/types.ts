@@ -14,13 +14,147 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      audit_log: {
+        Row: {
+          action: string
+          changes: Json | null
+          created_at: string
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          ip_address: string | null
+          tenant_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          changes?: Json | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          ip_address?: string | null
+          tenant_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          changes?: Json | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          ip_address?: string | null
+          tenant_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_log_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenants: {
+        Row: {
+          ai_cycle_start: string
+          ai_ops_limit: number
+          ai_ops_used: number
+          business_type: string | null
+          created_at: string
+          id: string
+          name: string
+          settings: Json
+          slug: string
+          subscription_plan: string | null
+          subscription_status: string
+          trial_ends_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          ai_cycle_start?: string
+          ai_ops_limit?: number
+          ai_ops_used?: number
+          business_type?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          settings?: Json
+          slug: string
+          subscription_plan?: string | null
+          subscription_status?: string
+          trial_ends_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ai_cycle_start?: string
+          ai_ops_limit?: number
+          ai_ops_used?: number
+          business_type?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          settings?: Json
+          slug?: string
+          subscription_plan?: string | null
+          subscription_status?: string
+          trial_ends_at?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_tenants: {
+        Row: {
+          created_at: string
+          invited_by: string | null
+          is_active: boolean
+          role: string
+          tenant_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          invited_by?: string | null
+          is_active?: boolean
+          role: string
+          tenant_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          invited_by?: string | null
+          is_active?: boolean
+          role?: string
+          tenant_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_tenants_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      current_user_role_in_tenant: {
+        Args: { tenant_uuid: string }
+        Returns: string
+      }
+      is_member_of_tenant: { Args: { tenant_uuid: string }; Returns: boolean }
+      is_super_admin: { Args: never; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
