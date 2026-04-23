@@ -1,7 +1,12 @@
 import { createFileRoute, Outlet, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { useAuth, ROLE_LABELS } from "@/lib/auth-context";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  setImpersonatingTenantId,
+  useImpersonatingTenantId,
+} from "@/lib/impersonation";
 
 export const Route = createFileRoute("/app")({
   component: AppLayout,
@@ -18,6 +23,31 @@ function AppLayout() {
   const { loading, session, currentTenantId, currentMembership, memberships, signOut } =
     useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const impersonatingId = useImpersonatingTenantId();
+  const isSuperAdmin = useMemo(
+    () => memberships.some((m) => m.role === "super_admin" && m.is_active),
+    [memberships],
+  );
+  const [impersonatedTenant, setImpersonatedTenant] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+
+  // Load impersonated tenant info when active
+  useEffect(() => {
+    if (!impersonatingId || !isSuperAdmin) {
+      setImpersonatedTenant(null);
+      return;
+    }
+    void supabase
+      .from("tenants")
+      .select("id, name")
+      .eq("id", impersonatingId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) setImpersonatedTenant(data as { id: string; name: string });
+      });
+  }, [impersonatingId, isSuperAdmin]);
 
   useEffect(() => {
     if (loading) return;
@@ -25,13 +55,33 @@ function AppLayout() {
       void navigate({ to: "/login" });
       return;
     }
+    // Impersonation overrides tenant selection
+    if (impersonatingId && isSuperAdmin) return;
     if (!currentTenantId) {
       if (memberships.length === 0) return;
       void navigate({ to: "/select-tenant" });
     }
-  }, [loading, session, currentTenantId, memberships, navigate]);
+  }, [loading, session, currentTenantId, memberships, navigate, impersonatingId, isSuperAdmin]);
 
-  if (loading || !session || !currentMembership) {
+  const isImpersonating = !!impersonatingId && isSuperAdmin && !!impersonatedTenant;
+  const effectiveTenantName = isImpersonating
+    ? impersonatedTenant!.name
+    : currentMembership?.tenants.name;
+  const effectiveRoleLabel = isImpersonating
+    ? "Propietario (impersonado)"
+    : currentMembership
+      ? ROLE_LABELS[currentMembership.role] ?? currentMembership.role
+      : "";
+
+  if (loading || !session) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <p className="text-sm text-muted-foreground">Cargando…</p>
+      </div>
+    );
+  }
+
+  if (!isImpersonating && !currentMembership) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <p className="text-sm text-muted-foreground">Cargando…</p>
@@ -46,9 +96,9 @@ function AppLayout() {
           Empresa
         </div>
         <div className="mt-1 truncate text-sm font-medium text-foreground">
-          {currentMembership.tenants.name}
+          {effectiveTenantName}
         </div>
-        {memberships.length > 1 && (
+        {!isImpersonating && memberships.length > 1 && (
           <button
             onClick={() => void navigate({ to: "/select-tenant" })}
             className="mt-1 text-xs text-primary hover:underline"
