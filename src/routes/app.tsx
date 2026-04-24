@@ -1,12 +1,13 @@
-import { createFileRoute, Outlet, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useNavigate, Link, useLocation } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, ArrowLeftRight } from "lucide-react";
 import { useAuth, ROLE_LABELS } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import {
   setImpersonatingTenantId,
   useImpersonatingTenantId,
 } from "@/lib/impersonation";
+import { isOnboardingCompleted } from "@/lib/onboarding";
 
 export const Route = createFileRoute("/app")({
   component: AppLayout,
@@ -20,6 +21,7 @@ const MENU = [
 
 function AppLayout() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { loading, session, currentTenantId, currentMembership, memberships, signOut } =
     useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -32,6 +34,8 @@ function AppLayout() {
     id: string;
     name: string;
   } | null>(null);
+  const [onboardingChecked, setOnboardingChecked] = useState(false);
+  const [onboardingDone, setOnboardingDone] = useState(false);
 
   // Load impersonated tenant info when active
   useEffect(() => {
@@ -63,6 +67,34 @@ function AppLayout() {
     }
   }, [loading, session, currentTenantId, memberships, navigate, impersonatingId, isSuperAdmin]);
 
+  // Determine effective tenant id (impersonation aware)
+  const effectiveTenantId =
+    impersonatingId && isSuperAdmin ? impersonatingId : currentTenantId;
+
+  // Onboarding gate: fetch settings.onboarding_completed for the active tenant
+  useEffect(() => {
+    let cancelled = false;
+    setOnboardingChecked(false);
+    if (!session || !effectiveTenantId) return;
+    void supabase
+      .from("tenants")
+      .select("settings")
+      .eq("id", effectiveTenantId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (cancelled) return;
+        const done = isOnboardingCompleted(data?.settings ?? {});
+        setOnboardingDone(done);
+        setOnboardingChecked(true);
+        if (!done && location.pathname !== "/app/onboarding") {
+          void navigate({ to: "/app/onboarding" });
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [session, effectiveTenantId, location.pathname, navigate]);
+
   const isImpersonating = !!impersonatingId && isSuperAdmin && !!impersonatedTenant;
   const effectiveTenantName = isImpersonating
     ? impersonatedTenant!.name
@@ -85,6 +117,47 @@ function AppLayout() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <p className="text-sm text-muted-foreground">Cargando…</p>
+      </div>
+    );
+  }
+
+  const onOnboardingRoute = location.pathname === "/app/onboarding";
+
+  // While we check onboarding for non-onboarding routes, show loader to prevent flash
+  if (!onboardingChecked && !onOnboardingRoute) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <p className="text-sm text-muted-foreground">Cargando…</p>
+      </div>
+    );
+  }
+
+  const impersonationBanner = isImpersonating ? (
+    <div className="sticky top-0 z-40 flex items-center justify-between gap-3 border-b border-amber-300 bg-amber-50 px-4 py-2 text-sm text-amber-900">
+      <div className="flex items-center gap-2">
+        <ArrowLeftRight className="h-4 w-4" />
+        <span>
+          Estás impersonando a <strong>{impersonatedTenant!.name}</strong>
+        </span>
+      </div>
+      <button
+        onClick={() => {
+          setImpersonatingTenantId(null);
+          void navigate({ to: "/admin" });
+        }}
+        className="rounded-md border border-amber-400 bg-white/60 px-2.5 py-1 text-xs font-medium text-amber-900 hover:bg-white"
+      >
+        Salir de impersonación
+      </button>
+    </div>
+  ) : null;
+
+  // Onboarding view: full-bleed, no sidebar, with optional banner above
+  if (onOnboardingRoute || !onboardingDone) {
+    return (
+      <div className="min-h-screen bg-background">
+        {impersonationBanner}
+        <Outlet />
       </div>
     );
   }
