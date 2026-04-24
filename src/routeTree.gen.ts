@@ -21,6 +21,7 @@ import { Route as AppOnboardingRouteImport } from './routes/app.onboarding'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AppProductosIndexRouteImport } from './routes/app.productos.index'
 import { Route as AdminTenantsIndexRouteImport } from './routes/admin.tenants.index'
+import { Route as AppProductosNuevoRouteImport } from './routes/app.productos.nuevo'
 import { Route as AdminTenantsNewRouteImport } from './routes/admin.tenants.new'
 import { Route as AdminTenantsIdRouteImport } from './routes/admin.tenants.$id'
 
@@ -84,6 +85,11 @@ const AdminTenantsIndexRoute = AdminTenantsIndexRouteImport.update({
   path: '/tenants/',
   getParentRoute: () => AdminRoute,
 } as any)
+const AppProductosNuevoRoute = AppProductosNuevoRouteImport.update({
+  id: '/productos/nuevo',
+  path: '/productos/nuevo',
+  getParentRoute: () => AppRoute,
+} as any)
 const AdminTenantsNewRoute = AdminTenantsNewRouteImport.update({
   id: '/tenants/new',
   path: '/tenants/new',
@@ -108,6 +114,7 @@ export interface FileRoutesByFullPath {
   '/app/': typeof AppIndexRoute
   '/admin/tenants/$id': typeof AdminTenantsIdRoute
   '/admin/tenants/new': typeof AdminTenantsNewRoute
+  '/app/productos/nuevo': typeof AppProductosNuevoRoute
   '/admin/tenants/': typeof AdminTenantsIndexRoute
   '/app/productos/': typeof AppProductosIndexRoute
 }
@@ -122,6 +129,7 @@ export interface FileRoutesByTo {
   '/app': typeof AppIndexRoute
   '/admin/tenants/$id': typeof AdminTenantsIdRoute
   '/admin/tenants/new': typeof AdminTenantsNewRoute
+  '/app/productos/nuevo': typeof AppProductosNuevoRoute
   '/admin/tenants': typeof AdminTenantsIndexRoute
   '/app/productos': typeof AppProductosIndexRoute
 }
@@ -139,6 +147,7 @@ export interface FileRoutesById {
   '/app/': typeof AppIndexRoute
   '/admin/tenants/$id': typeof AdminTenantsIdRoute
   '/admin/tenants/new': typeof AdminTenantsNewRoute
+  '/app/productos/nuevo': typeof AppProductosNuevoRoute
   '/admin/tenants/': typeof AdminTenantsIndexRoute
   '/app/productos/': typeof AppProductosIndexRoute
 }
@@ -157,6 +166,7 @@ export interface FileRouteTypes {
     | '/app/'
     | '/admin/tenants/$id'
     | '/admin/tenants/new'
+    | '/app/productos/nuevo'
     | '/admin/tenants/'
     | '/app/productos/'
   fileRoutesByTo: FileRoutesByTo
@@ -171,6 +181,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/admin/tenants/$id'
     | '/admin/tenants/new'
+    | '/app/productos/nuevo'
     | '/admin/tenants'
     | '/app/productos'
   id:
@@ -187,6 +198,7 @@ export interface FileRouteTypes {
     | '/app/'
     | '/admin/tenants/$id'
     | '/admin/tenants/new'
+    | '/app/productos/nuevo'
     | '/admin/tenants/'
     | '/app/productos/'
   fileRoutesById: FileRoutesById
@@ -286,6 +298,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminTenantsIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/app/productos/nuevo': {
+      id: '/app/productos/nuevo'
+      path: '/productos/nuevo'
+      fullPath: '/app/productos/nuevo'
+      preLoaderRoute: typeof AppProductosNuevoRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/admin/tenants/new': {
       id: '/admin/tenants/new'
       path: '/tenants/new'
@@ -324,12 +343,14 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 interface AppRouteChildren {
   AppOnboardingRoute: typeof AppOnboardingRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppProductosNuevoRoute: typeof AppProductosNuevoRoute
   AppProductosIndexRoute: typeof AppProductosIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppOnboardingRoute: AppOnboardingRoute,
   AppIndexRoute: AppIndexRoute,
+  AppProductosNuevoRoute: AppProductosNuevoRoute,
   AppProductosIndexRoute: AppProductosIndexRoute,
 }
 
