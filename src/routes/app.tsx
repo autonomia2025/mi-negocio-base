@@ -150,7 +150,7 @@ function AppLayout() {
       {/* Mobile top bar */}
       <header className="fixed inset-x-0 top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-card px-4 md:hidden">
         <div className="truncate text-sm font-medium">
-          {currentMembership.tenants.name}
+          {effectiveTenantName}
         </div>
         <button
           onClick={() => setSidebarOpen((s) => !s)}
