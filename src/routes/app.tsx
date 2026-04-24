@@ -13,9 +13,12 @@ export const Route = createFileRoute("/app")({
   component: AppLayout,
 });
 
-const MENU = [
-  { label: "Dashboard", to: "/app" as const },
-  { label: "Inventario", placeholder: true },
+const MENU: Array<
+  | { label: string; to: "/app" | "/app/productos"; placeholder?: false }
+  | { label: string; placeholder: true }
+> = [
+  { label: "Dashboard", to: "/app" },
+  { label: "Inventario", to: "/app/productos" },
   { label: "Ventas", placeholder: true },
 ];
 
@@ -196,8 +199,8 @@ function AppLayout() {
           ) : (
             <Link
               key={item.label}
-              to={item.to!}
-              activeOptions={{ exact: true }}
+              to={item.to}
+              activeOptions={{ exact: item.to === "/app" }}
               activeProps={{ className: "bg-accent text-accent-foreground" }}
               className="block rounded-md px-3 py-2 text-sm text-foreground hover:bg-accent"
               onClick={() => setSidebarOpen(false)}
