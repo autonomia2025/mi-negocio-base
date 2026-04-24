@@ -102,6 +102,84 @@ export type Database = {
           },
         ]
       }
+      products: {
+        Row: {
+          attributes: Json
+          cost_avg: number
+          created_at: string
+          current_stock: number
+          deleted_at: string | null
+          id: string
+          is_active: boolean
+          location: string | null
+          min_stock: number
+          name: string
+          price: number
+          reorder_point: number
+          reorder_qty: number
+          schema_id: string
+          sku: string
+          tenant_id: string
+          unit: string
+          updated_at: string
+        }
+        Insert: {
+          attributes?: Json
+          cost_avg?: number
+          created_at?: string
+          current_stock?: number
+          deleted_at?: string | null
+          id?: string
+          is_active?: boolean
+          location?: string | null
+          min_stock?: number
+          name: string
+          price?: number
+          reorder_point?: number
+          reorder_qty?: number
+          schema_id: string
+          sku: string
+          tenant_id: string
+          unit?: string
+          updated_at?: string
+        }
+        Update: {
+          attributes?: Json
+          cost_avg?: number
+          created_at?: string
+          current_stock?: number
+          deleted_at?: string | null
+          id?: string
+          is_active?: boolean
+          location?: string | null
+          min_stock?: number
+          name?: string
+          price?: number
+          reorder_point?: number
+          reorder_qty?: number
+          schema_id?: string
+          sku?: string
+          tenant_id?: string
+          unit?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_schema_id_fkey"
+            columns: ["schema_id"]
+            isOneToOne: false
+            referencedRelation: "product_schemas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenants: {
         Row: {
           ai_cycle_start: string
