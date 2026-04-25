@@ -249,6 +249,134 @@ export type Database = {
           },
         ]
       }
+      sale_items: {
+        Row: {
+          created_at: string
+          id: string
+          line_profit: number
+          line_subtotal: number
+          product_id: string
+          product_name_at_sale: string
+          product_sku_at_sale: string
+          quantity: number
+          sale_id: string
+          unit_cost_at_sale: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          line_profit: number
+          line_subtotal: number
+          product_id: string
+          product_name_at_sale: string
+          product_sku_at_sale: string
+          quantity: number
+          sale_id: string
+          unit_cost_at_sale: number
+          unit_price: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          line_profit?: number
+          line_subtotal?: number
+          product_id?: string
+          product_name_at_sale?: string
+          product_sku_at_sale?: string
+          quantity?: number
+          sale_id?: string
+          unit_cost_at_sale?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sale_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sale_items_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "sales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sales: {
+        Row: {
+          created_at: string
+          created_by: string
+          customer_email: string | null
+          customer_name: string | null
+          id: string
+          notes: string | null
+          payment_method: string
+          pdf_path: string | null
+          profit: number
+          sale_number: number
+          status: string
+          subtotal: number
+          tax_amount: number
+          tenant_id: string
+          total: number
+          void_reason: string | null
+          voided_at: string | null
+          voided_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          customer_email?: string | null
+          customer_name?: string | null
+          id?: string
+          notes?: string | null
+          payment_method: string
+          pdf_path?: string | null
+          profit: number
+          sale_number: number
+          status?: string
+          subtotal: number
+          tax_amount?: number
+          tenant_id: string
+          total: number
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          customer_email?: string | null
+          customer_name?: string | null
+          id?: string
+          notes?: string | null
+          payment_method?: string
+          pdf_path?: string | null
+          profit?: number
+          sale_number?: number
+          status?: string
+          subtotal?: number
+          tax_amount?: number
+          tenant_id?: string
+          total?: number
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       search_log: {
         Row: {
           created_at: string
@@ -404,6 +532,21 @@ export type Database = {
           p_unit_price?: number
         }
         Returns: string
+      }
+      register_sale: {
+        Args: {
+          p_customer_email: string
+          p_customer_name: string
+          p_items: Json
+          p_notes: string
+          p_payment_method: string
+          p_tenant_id: string
+        }
+        Returns: string
+      }
+      void_sale: {
+        Args: { p_reason: string; p_sale_id: string }
+        Returns: undefined
       }
     }
     Enums: {
