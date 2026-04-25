@@ -24,6 +24,7 @@ import { Route as AppVentasIndexRouteImport } from './routes/app.ventas.index'
 import { Route as AppProductosIndexRouteImport } from './routes/app.productos.index'
 import { Route as AppInventarioIndexRouteImport } from './routes/app.inventario.index'
 import { Route as AdminTenantsIndexRouteImport } from './routes/admin.tenants.index'
+import { Route as AppVentasNuevaRouteImport } from './routes/app.ventas.nueva'
 import { Route as AppProductosNuevoRouteImport } from './routes/app.productos.nuevo'
 import { Route as AppProductosProductIdRouteImport } from './routes/app.productos.$productId'
 import { Route as AppInventarioSalidaRouteImport } from './routes/app.inventario.salida'
@@ -107,6 +108,11 @@ const AdminTenantsIndexRoute = AdminTenantsIndexRouteImport.update({
   path: '/tenants/',
   getParentRoute: () => AdminRoute,
 } as any)
+const AppVentasNuevaRoute = AppVentasNuevaRouteImport.update({
+  id: '/ventas/nueva',
+  path: '/ventas/nueva',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppProductosNuevoRoute = AppProductosNuevoRouteImport.update({
   id: '/productos/nuevo',
   path: '/productos/nuevo',
@@ -163,6 +169,7 @@ export interface FileRoutesByFullPath {
   '/app/inventario/salida': typeof AppInventarioSalidaRoute
   '/app/productos/$productId': typeof AppProductosProductIdRoute
   '/app/productos/nuevo': typeof AppProductosNuevoRoute
+  '/app/ventas/nueva': typeof AppVentasNuevaRoute
   '/admin/tenants/': typeof AdminTenantsIndexRoute
   '/app/inventario/': typeof AppInventarioIndexRoute
   '/app/productos/': typeof AppProductosIndexRoute
@@ -185,6 +192,7 @@ export interface FileRoutesByTo {
   '/app/inventario/salida': typeof AppInventarioSalidaRoute
   '/app/productos/$productId': typeof AppProductosProductIdRoute
   '/app/productos/nuevo': typeof AppProductosNuevoRoute
+  '/app/ventas/nueva': typeof AppVentasNuevaRoute
   '/admin/tenants': typeof AdminTenantsIndexRoute
   '/app/inventario': typeof AppInventarioIndexRoute
   '/app/productos': typeof AppProductosIndexRoute
@@ -210,6 +218,7 @@ export interface FileRoutesById {
   '/app/inventario/salida': typeof AppInventarioSalidaRoute
   '/app/productos/$productId': typeof AppProductosProductIdRoute
   '/app/productos/nuevo': typeof AppProductosNuevoRoute
+  '/app/ventas/nueva': typeof AppVentasNuevaRoute
   '/admin/tenants/': typeof AdminTenantsIndexRoute
   '/app/inventario/': typeof AppInventarioIndexRoute
   '/app/productos/': typeof AppProductosIndexRoute
@@ -236,6 +245,7 @@ export interface FileRouteTypes {
     | '/app/inventario/salida'
     | '/app/productos/$productId'
     | '/app/productos/nuevo'
+    | '/app/ventas/nueva'
     | '/admin/tenants/'
     | '/app/inventario/'
     | '/app/productos/'
@@ -258,6 +268,7 @@ export interface FileRouteTypes {
     | '/app/inventario/salida'
     | '/app/productos/$productId'
     | '/app/productos/nuevo'
+    | '/app/ventas/nueva'
     | '/admin/tenants'
     | '/app/inventario'
     | '/app/productos'
@@ -282,6 +293,7 @@ export interface FileRouteTypes {
     | '/app/inventario/salida'
     | '/app/productos/$productId'
     | '/app/productos/nuevo'
+    | '/app/ventas/nueva'
     | '/admin/tenants/'
     | '/app/inventario/'
     | '/app/productos/'
@@ -404,6 +416,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminTenantsIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/app/ventas/nueva': {
+      id: '/app/ventas/nueva'
+      path: '/ventas/nueva'
+      fullPath: '/app/ventas/nueva'
+      preLoaderRoute: typeof AppVentasNuevaRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/productos/nuevo': {
       id: '/app/productos/nuevo'
       path: '/productos/nuevo'
@@ -483,6 +502,7 @@ interface AppRouteChildren {
   AppInventarioSalidaRoute: typeof AppInventarioSalidaRoute
   AppProductosProductIdRoute: typeof AppProductosProductIdRoute
   AppProductosNuevoRoute: typeof AppProductosNuevoRoute
+  AppVentasNuevaRoute: typeof AppVentasNuevaRoute
   AppInventarioIndexRoute: typeof AppInventarioIndexRoute
   AppProductosIndexRoute: typeof AppProductosIndexRoute
   AppVentasIndexRoute: typeof AppVentasIndexRoute
@@ -497,6 +517,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppInventarioSalidaRoute: AppInventarioSalidaRoute,
   AppProductosProductIdRoute: AppProductosProductIdRoute,
   AppProductosNuevoRoute: AppProductosNuevoRoute,
+  AppVentasNuevaRoute: AppVentasNuevaRoute,
   AppInventarioIndexRoute: AppInventarioIndexRoute,
   AppProductosIndexRoute: AppProductosIndexRoute,
   AppVentasIndexRoute: AppVentasIndexRoute,
