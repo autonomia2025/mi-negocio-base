@@ -176,3 +176,44 @@ export const getSalePdfUrlFn = createServerFn({ method: "POST" })
       .createSignedUrl(rec.pdf_path, 60 * 60);
     return { signedUrl: signed?.signedUrl ?? null };
   });
+
+/** Resolve a sale's salesperson email (server-side, uses admin auth API). */
+export const getSalespersonEmailFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { saleId: string }) => {
+    if (!data || typeof data.saleId !== "string") throw new Error("saleId inválido");
+    return data;
+  })
+  .handler(async ({ data, context }) => {
+    const { userId } = context as { userId: string };
+    const { data: sale } = await supabaseAdmin
+      .from("sales")
+      .select("tenant_id, created_by")
+      .eq("id", data.saleId)
+      .maybeSingle();
+    const rec = sale as unknown as { tenant_id: string; created_by: string } | null;
+    if (!rec) return { email: null };
+
+    const { data: membership } = await supabaseAdmin
+      .from("user_tenants")
+      .select("role")
+      .eq("user_id", userId)
+      .eq("tenant_id", rec.tenant_id)
+      .eq("is_active", true)
+      .maybeSingle();
+    const { data: superAdmin } = await supabaseAdmin
+      .from("user_tenants")
+      .select("role")
+      .eq("user_id", userId)
+      .eq("role", "super_admin")
+      .eq("is_active", true)
+      .maybeSingle();
+    if (!membership && !superAdmin) return { email: null };
+
+    try {
+      const { data: u } = await supabaseAdmin.auth.admin.getUserById(rec.created_by);
+      return { email: u?.user?.email ?? null };
+    } catch {
+      return { email: null };
+    }
+  });

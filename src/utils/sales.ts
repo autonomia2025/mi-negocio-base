@@ -297,3 +297,15 @@ export async function generateSalePdfClient(saleId: string): Promise<{ signedUrl
   const { generateSalePdfFn } = await import("@/utils/sales.functions");
   return generateSalePdfFn({ data: { saleId } });
 }
+
+export async function getSalePdfSignedUrl(saleId: string): Promise<string | null> {
+  const { getSalePdfUrlFn } = await import("@/utils/sales.functions");
+  const r = await getSalePdfUrlFn({ data: { saleId } });
+  return r.signedUrl ?? null;
+}
+
+export async function getSalespersonEmail(saleId: string): Promise<string | null> {
+  const { getSalespersonEmailFn } = await import("@/utils/sales.functions");
+  const r = await getSalespersonEmailFn({ data: { saleId } });
+  return r.email ?? null;
+}
