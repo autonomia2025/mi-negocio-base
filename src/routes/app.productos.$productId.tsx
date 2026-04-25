@@ -51,6 +51,7 @@ function ProductDetailPage() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [movements, setMovements] = useState<MovementWithProduct[] | null>(null);
   const [movementsLoading, setMovementsLoading] = useState(false);
+  const [salesById, setSalesById] = useState<Record<string, { sale_number: number; status: string }>>({});
 
   useEffect(() => {
     if (!tenantId) return;
@@ -84,8 +85,29 @@ function ProductDetailPage() {
     let cancelled = false;
     setMovementsLoading(true);
     void fetchMovementsByProduct(product.id, tenantId, 100)
-      .then((rows) => {
-        if (!cancelled) setMovements(rows);
+      .then(async (rows) => {
+        if (cancelled) return;
+        setMovements(rows);
+        const saleIds = Array.from(
+          new Set(
+            rows
+              .filter((r) => r.movement_type === "sale" && r.reference_id)
+              .map((r) => r.reference_id as string),
+          ),
+        );
+        if (saleIds.length > 0) {
+          const { data } = await supabase
+            .from("sales")
+            .select("id, sale_number, status")
+            .in("id", saleIds);
+          if (!cancelled && data) {
+            const map: Record<string, { sale_number: number; status: string }> = {};
+            for (const s of data as Array<{ id: string; sale_number: number; status: string }>) {
+              map[s.id] = { sale_number: s.sale_number, status: s.status };
+            }
+            setSalesById(map);
+          }
+        }
       })
       .catch(() => {
         if (!cancelled) setMovements([]);
@@ -266,6 +288,7 @@ function ProductDetailPage() {
           rows={movements ?? []}
           loading={movementsLoading}
           productId={product.id}
+          salesById={salesById}
         />
       )}
       {tab === "precios" && (
@@ -322,10 +345,12 @@ function ProductMovements({
   rows,
   loading,
   productId,
+  salesById,
 }: {
   rows: MovementWithProduct[];
   loading: boolean;
   productId: string;
+  salesById: Record<string, { sale_number: number; status: string }>;
 }) {
   if (loading) return <div className="text-sm text-muted-foreground">Cargando movimientos…</div>;
   if (rows.length === 0) {
@@ -348,6 +373,7 @@ function ProductMovements({
           <tbody className="divide-y divide-border">
             {rows.map((m) => {
               const inbound = INBOUND_TYPES.has(m.movement_type);
+              const sale = m.movement_type === "sale" && m.reference_id ? salesById[m.reference_id] : null;
               return (
                 <tr key={m.id}>
                   <td className="px-3 py-2 text-xs text-muted-foreground">{new Date(m.created_at).toLocaleString("es-MX")}</td>
@@ -355,6 +381,15 @@ function ProductMovements({
                     <span className={`inline-flex rounded-full px-2 py-0.5 text-xs ${inbound ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
                       {MOVEMENT_LABELS[m.movement_type] ?? m.movement_type}
                     </span>
+                    {sale && m.reference_id && (
+                      <Link
+                        to="/app/ventas/$saleId"
+                        params={{ saleId: m.reference_id }}
+                        className={`ml-2 text-xs text-primary hover:underline ${sale.status === "voided" ? "line-through text-muted-foreground" : ""}`}
+                      >
+                        Venta #{sale.sale_number}
+                      </Link>
+                    )}
                   </td>
                   <td className={`px-3 py-2 text-right tabular-nums ${inbound ? "text-green-700" : "text-red-700"}`}>
                     {inbound ? "+" : "−"}{formatNumber(m.quantity, 2)}
