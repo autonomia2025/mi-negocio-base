@@ -14,7 +14,7 @@ import {
   type SchemaAttribute,
   type StockStatus,
 } from "@/utils/quickSearch";
-import { formatCurrency } from "@/utils/currency";
+import { formatCurrency, getTenantCurrency, type CurrencyCode } from "@/utils/currency";
 import { useImpersonatingTenantId } from "@/lib/impersonation";
 
 export const Route = createFileRoute("/app/consulta")({
@@ -51,7 +51,7 @@ function ConsultaPage() {
     return (parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "");
   }, [user]);
 
-  const [moneda, setMoneda] = useState("MXN");
+  const [moneda, setMoneda] = useState<CurrencyCode>("MXN");
   const [schemaAttrs, setSchemaAttrs] = useState<SchemaAttribute[]>([]);
   const [query, setQuery] = useState("");
   const [committed, setCommitted] = useState("");
