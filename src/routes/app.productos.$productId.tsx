@@ -17,6 +17,12 @@ import {
 } from "@/utils/products";
 import { ProductForm } from "@/components/products/ProductForm";
 import { formatCurrency, getTenantCurrency, formatNumber, type CurrencyCode } from "@/utils/currency";
+import {
+  fetchMovementsByProduct,
+  MOVEMENT_LABELS,
+  INBOUND_TYPES,
+  type MovementWithProduct,
+} from "@/utils/inventory";
 
 export const Route = createFileRoute("/app/productos/$productId")({
   component: ProductDetailPage,
@@ -43,6 +49,8 @@ function ProductDetailPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [movements, setMovements] = useState<MovementWithProduct[] | null>(null);
+  const [movementsLoading, setMovementsLoading] = useState(false);
 
   useEffect(() => {
     if (!tenantId) return;
@@ -67,6 +75,28 @@ function ProductDetailPage() {
       cancelled = true;
     };
   }, [productId, tenantId]);
+
+  // Load movements lazily when entering the tab
+  useEffect(() => {
+    if (!tenantId || !product) return;
+    if (tab !== "movimientos" && tab !== "precios") return;
+    if (movements !== null) return;
+    let cancelled = false;
+    setMovementsLoading(true);
+    void fetchMovementsByProduct(product.id, tenantId, 100)
+      .then((rows) => {
+        if (!cancelled) setMovements(rows);
+      })
+      .catch(() => {
+        if (!cancelled) setMovements([]);
+      })
+      .finally(() => {
+        if (!cancelled) setMovementsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [tab, product, tenantId, movements]);
 
   const margin = useMemo(() => {
     if (!product) return null;
@@ -232,10 +262,14 @@ function ProductDetailPage() {
         ))}
 
       {tab === "movimientos" && (
-        <Placeholder text="Los movimientos de inventario estarán disponibles en la siguiente fase." />
+        <ProductMovements
+          rows={movements ?? []}
+          loading={movementsLoading}
+          productId={product.id}
+        />
       )}
       {tab === "precios" && (
-        <Placeholder text="El historial de precios estará disponible próximamente." />
+        <PriceHistory rows={movements ?? []} loading={movementsLoading} currency={currency} />
       )}
 
       {confirmDelete && (
@@ -280,6 +314,136 @@ function Placeholder({ text }: { text: string }) {
   return (
     <div className="rounded-md border border-dashed border-border bg-muted/30 px-4 py-10 text-center text-sm text-muted-foreground">
       {text}
+    </div>
+  );
+}
+
+function ProductMovements({
+  rows,
+  loading,
+  productId,
+}: {
+  rows: MovementWithProduct[];
+  loading: boolean;
+  productId: string;
+}) {
+  if (loading) return <div className="text-sm text-muted-foreground">Cargando movimientos…</div>;
+  if (rows.length === 0) {
+    return <Placeholder text="Aún no hay movimientos para este producto." />;
+  }
+  return (
+    <div className="space-y-3">
+      <div className="overflow-hidden rounded-md border border-border bg-card">
+        <table className="w-full text-sm">
+          <thead className="border-b border-border bg-muted/30 text-xs uppercase tracking-wide text-muted-foreground">
+            <tr>
+              <th className="px-3 py-2 text-left">Fecha</th>
+              <th className="px-3 py-2 text-left">Tipo</th>
+              <th className="px-3 py-2 text-right">Cantidad</th>
+              <th className="px-3 py-2 text-right">Antes</th>
+              <th className="px-3 py-2 text-right">Después</th>
+              <th className="px-3 py-2 text-left">Notas</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {rows.map((m) => {
+              const inbound = INBOUND_TYPES.has(m.movement_type);
+              return (
+                <tr key={m.id}>
+                  <td className="px-3 py-2 text-xs text-muted-foreground">{new Date(m.created_at).toLocaleString("es-MX")}</td>
+                  <td className="px-3 py-2">
+                    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs ${inbound ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
+                      {MOVEMENT_LABELS[m.movement_type] ?? m.movement_type}
+                    </span>
+                  </td>
+                  <td className={`px-3 py-2 text-right tabular-nums ${inbound ? "text-green-700" : "text-red-700"}`}>
+                    {inbound ? "+" : "−"}{formatNumber(m.quantity, 2)}
+                  </td>
+                  <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">{formatNumber(m.stock_before, 2)}</td>
+                  <td className="px-3 py-2 text-right tabular-nums">{formatNumber(m.stock_after, 2)}</td>
+                  <td className="px-3 py-2 text-xs text-muted-foreground">
+                    <div className="line-clamp-1 max-w-xs" title={m.notes ?? ""}>{m.notes ?? ""}</div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      <Link
+        to="/app/inventario/movimientos"
+        className="inline-block text-xs text-primary hover:underline"
+      >
+        Ver más en el registro global →
+      </Link>
+      {/* productId reserved for future deep-link filter */}
+      <span className="hidden">{productId}</span>
+    </div>
+  );
+}
+
+function PriceHistory({
+  rows,
+  loading,
+  currency,
+}: {
+  rows: MovementWithProduct[];
+  loading: boolean;
+  currency: CurrencyCode;
+}) {
+  if (loading) return <div className="text-sm text-muted-foreground">Cargando…</div>;
+  const purchases = rows
+    .filter((r) => r.movement_type === "purchase" && r.unit_cost != null)
+    .slice()
+    .reverse();
+  if (purchases.length < 2) {
+    return <Placeholder text="Necesitas al menos 2 compras para ver el historial." />;
+  }
+  const max = Math.max(...purchases.map((p) => Number(p.unit_cost)));
+  const min = Math.min(...purchases.map((p) => Number(p.unit_cost)));
+  const range = Math.max(max - min, 0.01);
+  return (
+    <div className="space-y-3">
+      <div className="rounded-md border border-border bg-card p-4">
+        <div className="flex h-32 items-end gap-1">
+          {purchases.map((p) => {
+            const v = Number(p.unit_cost);
+            const h = ((v - min) / range) * 100;
+            return (
+              <div
+                key={p.id}
+                title={`${formatCurrency(v, currency)} · ${new Date(p.created_at).toLocaleDateString("es-MX")}`}
+                className="flex-1 rounded-t bg-primary/70"
+                style={{ height: `${Math.max(h, 6)}%` }}
+              />
+            );
+          })}
+        </div>
+        <div className="mt-2 flex justify-between text-[10px] text-muted-foreground">
+          <span>Mín {formatCurrency(min, currency)}</span>
+          <span>Máx {formatCurrency(max, currency)}</span>
+        </div>
+      </div>
+      <div className="overflow-hidden rounded-md border border-border bg-card">
+        <table className="w-full text-sm">
+          <thead className="border-b border-border bg-muted/30 text-xs uppercase tracking-wide text-muted-foreground">
+            <tr>
+              <th className="px-3 py-2 text-left">Fecha</th>
+              <th className="px-3 py-2 text-right">Cantidad</th>
+              <th className="px-3 py-2 text-right">Costo unitario</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {purchases.map((p) => (
+              <tr key={p.id}>
+                <td className="px-3 py-2 text-xs text-muted-foreground">{new Date(p.created_at).toLocaleDateString("es-MX")}</td>
+                <td className="px-3 py-2 text-right tabular-nums">{formatNumber(p.quantity, 2)}</td>
+                <td className="px-3 py-2 text-right tabular-nums font-medium">{formatCurrency(p.unit_cost ?? 0, currency)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

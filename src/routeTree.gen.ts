@@ -20,9 +20,13 @@ import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AppOnboardingRouteImport } from './routes/app.onboarding'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AppProductosIndexRouteImport } from './routes/app.productos.index'
+import { Route as AppInventarioIndexRouteImport } from './routes/app.inventario.index'
 import { Route as AdminTenantsIndexRouteImport } from './routes/admin.tenants.index'
 import { Route as AppProductosNuevoRouteImport } from './routes/app.productos.nuevo'
 import { Route as AppProductosProductIdRouteImport } from './routes/app.productos.$productId'
+import { Route as AppInventarioSalidaRouteImport } from './routes/app.inventario.salida'
+import { Route as AppInventarioMovimientosRouteImport } from './routes/app.inventario.movimientos'
+import { Route as AppInventarioEntradaRouteImport } from './routes/app.inventario.entrada'
 import { Route as AdminTenantsNewRouteImport } from './routes/admin.tenants.new'
 import { Route as AdminTenantsIdRouteImport } from './routes/admin.tenants.$id'
 
@@ -81,6 +85,11 @@ const AppProductosIndexRoute = AppProductosIndexRouteImport.update({
   path: '/productos/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppInventarioIndexRoute = AppInventarioIndexRouteImport.update({
+  id: '/inventario/',
+  path: '/inventario/',
+  getParentRoute: () => AppRoute,
+} as any)
 const AdminTenantsIndexRoute = AdminTenantsIndexRouteImport.update({
   id: '/tenants/',
   path: '/tenants/',
@@ -94,6 +103,22 @@ const AppProductosNuevoRoute = AppProductosNuevoRouteImport.update({
 const AppProductosProductIdRoute = AppProductosProductIdRouteImport.update({
   id: '/productos/$productId',
   path: '/productos/$productId',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppInventarioSalidaRoute = AppInventarioSalidaRouteImport.update({
+  id: '/inventario/salida',
+  path: '/inventario/salida',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppInventarioMovimientosRoute =
+  AppInventarioMovimientosRouteImport.update({
+    id: '/inventario/movimientos',
+    path: '/inventario/movimientos',
+    getParentRoute: () => AppRoute,
+  } as any)
+const AppInventarioEntradaRoute = AppInventarioEntradaRouteImport.update({
+  id: '/inventario/entrada',
+  path: '/inventario/entrada',
   getParentRoute: () => AppRoute,
 } as any)
 const AdminTenantsNewRoute = AdminTenantsNewRouteImport.update({
@@ -120,9 +145,13 @@ export interface FileRoutesByFullPath {
   '/app/': typeof AppIndexRoute
   '/admin/tenants/$id': typeof AdminTenantsIdRoute
   '/admin/tenants/new': typeof AdminTenantsNewRoute
+  '/app/inventario/entrada': typeof AppInventarioEntradaRoute
+  '/app/inventario/movimientos': typeof AppInventarioMovimientosRoute
+  '/app/inventario/salida': typeof AppInventarioSalidaRoute
   '/app/productos/$productId': typeof AppProductosProductIdRoute
   '/app/productos/nuevo': typeof AppProductosNuevoRoute
   '/admin/tenants/': typeof AdminTenantsIndexRoute
+  '/app/inventario/': typeof AppInventarioIndexRoute
   '/app/productos/': typeof AppProductosIndexRoute
 }
 export interface FileRoutesByTo {
@@ -136,9 +165,13 @@ export interface FileRoutesByTo {
   '/app': typeof AppIndexRoute
   '/admin/tenants/$id': typeof AdminTenantsIdRoute
   '/admin/tenants/new': typeof AdminTenantsNewRoute
+  '/app/inventario/entrada': typeof AppInventarioEntradaRoute
+  '/app/inventario/movimientos': typeof AppInventarioMovimientosRoute
+  '/app/inventario/salida': typeof AppInventarioSalidaRoute
   '/app/productos/$productId': typeof AppProductosProductIdRoute
   '/app/productos/nuevo': typeof AppProductosNuevoRoute
   '/admin/tenants': typeof AdminTenantsIndexRoute
+  '/app/inventario': typeof AppInventarioIndexRoute
   '/app/productos': typeof AppProductosIndexRoute
 }
 export interface FileRoutesById {
@@ -155,9 +188,13 @@ export interface FileRoutesById {
   '/app/': typeof AppIndexRoute
   '/admin/tenants/$id': typeof AdminTenantsIdRoute
   '/admin/tenants/new': typeof AdminTenantsNewRoute
+  '/app/inventario/entrada': typeof AppInventarioEntradaRoute
+  '/app/inventario/movimientos': typeof AppInventarioMovimientosRoute
+  '/app/inventario/salida': typeof AppInventarioSalidaRoute
   '/app/productos/$productId': typeof AppProductosProductIdRoute
   '/app/productos/nuevo': typeof AppProductosNuevoRoute
   '/admin/tenants/': typeof AdminTenantsIndexRoute
+  '/app/inventario/': typeof AppInventarioIndexRoute
   '/app/productos/': typeof AppProductosIndexRoute
 }
 export interface FileRouteTypes {
@@ -175,9 +212,13 @@ export interface FileRouteTypes {
     | '/app/'
     | '/admin/tenants/$id'
     | '/admin/tenants/new'
+    | '/app/inventario/entrada'
+    | '/app/inventario/movimientos'
+    | '/app/inventario/salida'
     | '/app/productos/$productId'
     | '/app/productos/nuevo'
     | '/admin/tenants/'
+    | '/app/inventario/'
     | '/app/productos/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -191,9 +232,13 @@ export interface FileRouteTypes {
     | '/app'
     | '/admin/tenants/$id'
     | '/admin/tenants/new'
+    | '/app/inventario/entrada'
+    | '/app/inventario/movimientos'
+    | '/app/inventario/salida'
     | '/app/productos/$productId'
     | '/app/productos/nuevo'
     | '/admin/tenants'
+    | '/app/inventario'
     | '/app/productos'
   id:
     | '__root__'
@@ -209,9 +254,13 @@ export interface FileRouteTypes {
     | '/app/'
     | '/admin/tenants/$id'
     | '/admin/tenants/new'
+    | '/app/inventario/entrada'
+    | '/app/inventario/movimientos'
+    | '/app/inventario/salida'
     | '/app/productos/$productId'
     | '/app/productos/nuevo'
     | '/admin/tenants/'
+    | '/app/inventario/'
     | '/app/productos/'
   fileRoutesById: FileRoutesById
 }
@@ -303,6 +352,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProductosIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/inventario/': {
+      id: '/app/inventario/'
+      path: '/inventario'
+      fullPath: '/app/inventario/'
+      preLoaderRoute: typeof AppInventarioIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/admin/tenants/': {
       id: '/admin/tenants/'
       path: '/tenants'
@@ -322,6 +378,27 @@ declare module '@tanstack/react-router' {
       path: '/productos/$productId'
       fullPath: '/app/productos/$productId'
       preLoaderRoute: typeof AppProductosProductIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/inventario/salida': {
+      id: '/app/inventario/salida'
+      path: '/inventario/salida'
+      fullPath: '/app/inventario/salida'
+      preLoaderRoute: typeof AppInventarioSalidaRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/inventario/movimientos': {
+      id: '/app/inventario/movimientos'
+      path: '/inventario/movimientos'
+      fullPath: '/app/inventario/movimientos'
+      preLoaderRoute: typeof AppInventarioMovimientosRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/inventario/entrada': {
+      id: '/app/inventario/entrada'
+      path: '/inventario/entrada'
+      fullPath: '/app/inventario/entrada'
+      preLoaderRoute: typeof AppInventarioEntradaRouteImport
       parentRoute: typeof AppRoute
     }
     '/admin/tenants/new': {
@@ -362,16 +439,24 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 interface AppRouteChildren {
   AppOnboardingRoute: typeof AppOnboardingRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppInventarioEntradaRoute: typeof AppInventarioEntradaRoute
+  AppInventarioMovimientosRoute: typeof AppInventarioMovimientosRoute
+  AppInventarioSalidaRoute: typeof AppInventarioSalidaRoute
   AppProductosProductIdRoute: typeof AppProductosProductIdRoute
   AppProductosNuevoRoute: typeof AppProductosNuevoRoute
+  AppInventarioIndexRoute: typeof AppInventarioIndexRoute
   AppProductosIndexRoute: typeof AppProductosIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppOnboardingRoute: AppOnboardingRoute,
   AppIndexRoute: AppIndexRoute,
+  AppInventarioEntradaRoute: AppInventarioEntradaRoute,
+  AppInventarioMovimientosRoute: AppInventarioMovimientosRoute,
+  AppInventarioSalidaRoute: AppInventarioSalidaRoute,
   AppProductosProductIdRoute: AppProductosProductIdRoute,
   AppProductosNuevoRoute: AppProductosNuevoRoute,
+  AppInventarioIndexRoute: AppInventarioIndexRoute,
   AppProductosIndexRoute: AppProductosIndexRoute,
 }
 

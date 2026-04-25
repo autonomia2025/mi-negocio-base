@@ -14,11 +14,12 @@ export const Route = createFileRoute("/app")({
 });
 
 const MENU: Array<
-  | { label: string; to: "/app" | "/app/productos"; placeholder?: false }
+  | { label: string; to: "/app" | "/app/productos" | "/app/inventario"; placeholder?: false }
   | { label: string; placeholder: true }
 > = [
   { label: "Dashboard", to: "/app" },
-  { label: "Inventario", to: "/app/productos" },
+  { label: "Catálogo", to: "/app/productos" },
+  { label: "Inventario", to: "/app/inventario" },
   { label: "Ventas", placeholder: true },
 ];
 
