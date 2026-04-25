@@ -14,6 +14,77 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_ingestions: {
+        Row: {
+          confirmed_at: string | null
+          confirmed_by: string | null
+          cost_usd: number | null
+          created_at: string
+          error_message: string | null
+          extracted_data: Json
+          final_data: Json | null
+          id: string
+          input_image_path: string | null
+          input_text: string | null
+          intent: string
+          mode: string
+          raw_response: Json
+          status: string
+          tenant_id: string
+          tokens_input: number | null
+          tokens_output: number | null
+          user_id: string
+        }
+        Insert: {
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          cost_usd?: number | null
+          created_at?: string
+          error_message?: string | null
+          extracted_data?: Json
+          final_data?: Json | null
+          id?: string
+          input_image_path?: string | null
+          input_text?: string | null
+          intent: string
+          mode: string
+          raw_response?: Json
+          status?: string
+          tenant_id: string
+          tokens_input?: number | null
+          tokens_output?: number | null
+          user_id: string
+        }
+        Update: {
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          cost_usd?: number | null
+          created_at?: string
+          error_message?: string | null
+          extracted_data?: Json
+          final_data?: Json | null
+          id?: string
+          input_image_path?: string | null
+          input_text?: string | null
+          intent?: string
+          mode?: string
+          raw_response?: Json
+          status?: string
+          tenant_id?: string
+          tokens_input?: number | null
+          tokens_output?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_ingestions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_log: {
         Row: {
           action: string
@@ -516,6 +587,10 @@ export type Database = {
       current_user_role_in_tenant: {
         Args: { tenant_uuid: string }
         Returns: string
+      }
+      increment_ai_usage: {
+        Args: { p_amount?: number; p_tenant_id: string }
+        Returns: boolean
       }
       is_member_of_tenant: { Args: { tenant_uuid: string }; Returns: boolean }
       is_super_admin: { Args: never; Returns: boolean }
