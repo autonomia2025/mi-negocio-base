@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, Download, Printer, XCircle, RefreshCw, Loader2 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
@@ -23,7 +23,6 @@ export const Route = createFileRoute("/app/ventas/$saleId")({
 
 function SaleDetailPage() {
   const { saleId } = Route.useParams();
-  const navigate = useNavigate();
   const { currentTenantId, currentMembership, memberships, user } = useAuth();
   const impersonatingId = useImpersonatingTenantId();
   const isSuperAdmin = memberships.some((m) => m.role === "super_admin" && m.is_active);
@@ -519,8 +518,6 @@ function SaleDetailPage() {
           </div>
         </div>
       )}
-      {/* navigate is reserved if we add post-action redirects */}
-      <span className="hidden">{navigate ? "" : ""}</span>
     </div>
   );
 }
