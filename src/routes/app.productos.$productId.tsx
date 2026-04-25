@@ -17,6 +17,12 @@ import {
 } from "@/utils/products";
 import { ProductForm } from "@/components/products/ProductForm";
 import { formatCurrency, getTenantCurrency, formatNumber, type CurrencyCode } from "@/utils/currency";
+import {
+  fetchMovementsByProduct,
+  MOVEMENT_LABELS,
+  INBOUND_TYPES,
+  type MovementWithProduct,
+} from "@/utils/inventory";
 
 export const Route = createFileRoute("/app/productos/$productId")({
   component: ProductDetailPage,
@@ -43,6 +49,8 @@ function ProductDetailPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [movements, setMovements] = useState<MovementWithProduct[] | null>(null);
+  const [movementsLoading, setMovementsLoading] = useState(false);
 
   useEffect(() => {
     if (!tenantId) return;
@@ -67,6 +75,28 @@ function ProductDetailPage() {
       cancelled = true;
     };
   }, [productId, tenantId]);
+
+  // Load movements lazily when entering the tab
+  useEffect(() => {
+    if (!tenantId || !product) return;
+    if (tab !== "movimientos" && tab !== "precios") return;
+    if (movements !== null) return;
+    let cancelled = false;
+    setMovementsLoading(true);
+    void fetchMovementsByProduct(product.id, tenantId, 100)
+      .then((rows) => {
+        if (!cancelled) setMovements(rows);
+      })
+      .catch(() => {
+        if (!cancelled) setMovements([]);
+      })
+      .finally(() => {
+        if (!cancelled) setMovementsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [tab, product, tenantId, movements]);
 
   const margin = useMemo(() => {
     if (!product) return null;
@@ -232,10 +262,14 @@ function ProductDetailPage() {
         ))}
 
       {tab === "movimientos" && (
-        <Placeholder text="Los movimientos de inventario estarán disponibles en la siguiente fase." />
+        <ProductMovements
+          rows={movements ?? []}
+          loading={movementsLoading}
+          productId={product.id}
+        />
       )}
       {tab === "precios" && (
-        <Placeholder text="El historial de precios estará disponible próximamente." />
+        <PriceHistory rows={movements ?? []} loading={movementsLoading} currency={currency} />
       )}
 
       {confirmDelete && (
