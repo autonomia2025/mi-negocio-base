@@ -61,6 +61,75 @@ export type Database = {
           },
         ]
       }
+      inventory_movements: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          movement_type: string
+          notes: string | null
+          product_id: string
+          quantity: number
+          reference_id: string | null
+          reference_type: string | null
+          signed_quantity: number | null
+          stock_after: number
+          stock_before: number
+          tenant_id: string
+          unit_cost: number | null
+          unit_price: number | null
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          movement_type: string
+          notes?: string | null
+          product_id: string
+          quantity: number
+          reference_id?: string | null
+          reference_type?: string | null
+          signed_quantity?: number | null
+          stock_after: number
+          stock_before: number
+          tenant_id: string
+          unit_cost?: number | null
+          unit_price?: number | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          movement_type?: string
+          notes?: string | null
+          product_id?: string
+          quantity?: number
+          reference_id?: string | null
+          reference_type?: string | null
+          signed_quantity?: number | null
+          stock_after?: number
+          stock_before?: number
+          tenant_id?: string
+          unit_cost?: number | null
+          unit_price?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_movements_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_movements_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_schemas: {
         Row: {
           attributes: Json
@@ -274,6 +343,20 @@ export type Database = {
       }
       is_member_of_tenant: { Args: { tenant_uuid: string }; Returns: boolean }
       is_super_admin: { Args: never; Returns: boolean }
+      record_inventory_movement: {
+        Args: {
+          p_movement_type: string
+          p_notes?: string
+          p_product_id: string
+          p_quantity: number
+          p_reference_id?: string
+          p_reference_type?: string
+          p_tenant_id: string
+          p_unit_cost?: number
+          p_unit_price?: number
+        }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
