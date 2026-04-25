@@ -129,12 +129,22 @@ export async function voidSale(saleId: string, reason: string): Promise<void> {
 
   // Audit log
   const { data: userRes } = await supabase.auth.getUser();
-  const { data: saleRow } = await (supabase as unknown as SbAny)
+  const sbSale = supabase as unknown as {
+    from: (t: string) => {
+      select: (cols: string) => {
+        eq: (k: string, v: string) => {
+          maybeSingle: () => Promise<{
+            data: { tenant_id: string; sale_number: number } | null;
+          }>;
+        };
+      };
+    };
+  };
+  const { data: saleRow } = await sbSale
     .from("sales")
     .select("tenant_id, sale_number")
     .eq("id", saleId)
-    .maybeSingle()
-    .then((r) => r as { data: { tenant_id: string; sale_number: number } | null });
+    .maybeSingle();
   if (saleRow && userRes?.user) {
     await supabase.from("audit_log").insert({
       action: "sale.voided",
