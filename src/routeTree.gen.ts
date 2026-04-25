@@ -20,6 +20,7 @@ import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AppOnboardingRouteImport } from './routes/app.onboarding'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AppProductosIndexRouteImport } from './routes/app.productos.index'
+import { Route as AppInventarioIndexRouteImport } from './routes/app.inventario.index'
 import { Route as AdminTenantsIndexRouteImport } from './routes/admin.tenants.index'
 import { Route as AppProductosNuevoRouteImport } from './routes/app.productos.nuevo'
 import { Route as AppProductosProductIdRouteImport } from './routes/app.productos.$productId'
@@ -81,6 +82,11 @@ const AppProductosIndexRoute = AppProductosIndexRouteImport.update({
   path: '/productos/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppInventarioIndexRoute = AppInventarioIndexRouteImport.update({
+  id: '/inventario/',
+  path: '/inventario/',
+  getParentRoute: () => AppRoute,
+} as any)
 const AdminTenantsIndexRoute = AdminTenantsIndexRouteImport.update({
   id: '/tenants/',
   path: '/tenants/',
@@ -123,6 +129,7 @@ export interface FileRoutesByFullPath {
   '/app/productos/$productId': typeof AppProductosProductIdRoute
   '/app/productos/nuevo': typeof AppProductosNuevoRoute
   '/admin/tenants/': typeof AdminTenantsIndexRoute
+  '/app/inventario/': typeof AppInventarioIndexRoute
   '/app/productos/': typeof AppProductosIndexRoute
 }
 export interface FileRoutesByTo {
@@ -139,6 +146,7 @@ export interface FileRoutesByTo {
   '/app/productos/$productId': typeof AppProductosProductIdRoute
   '/app/productos/nuevo': typeof AppProductosNuevoRoute
   '/admin/tenants': typeof AdminTenantsIndexRoute
+  '/app/inventario': typeof AppInventarioIndexRoute
   '/app/productos': typeof AppProductosIndexRoute
 }
 export interface FileRoutesById {
@@ -158,6 +166,7 @@ export interface FileRoutesById {
   '/app/productos/$productId': typeof AppProductosProductIdRoute
   '/app/productos/nuevo': typeof AppProductosNuevoRoute
   '/admin/tenants/': typeof AdminTenantsIndexRoute
+  '/app/inventario/': typeof AppInventarioIndexRoute
   '/app/productos/': typeof AppProductosIndexRoute
 }
 export interface FileRouteTypes {
@@ -178,6 +187,7 @@ export interface FileRouteTypes {
     | '/app/productos/$productId'
     | '/app/productos/nuevo'
     | '/admin/tenants/'
+    | '/app/inventario/'
     | '/app/productos/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -194,6 +204,7 @@ export interface FileRouteTypes {
     | '/app/productos/$productId'
     | '/app/productos/nuevo'
     | '/admin/tenants'
+    | '/app/inventario'
     | '/app/productos'
   id:
     | '__root__'
@@ -212,6 +223,7 @@ export interface FileRouteTypes {
     | '/app/productos/$productId'
     | '/app/productos/nuevo'
     | '/admin/tenants/'
+    | '/app/inventario/'
     | '/app/productos/'
   fileRoutesById: FileRoutesById
 }
@@ -303,6 +315,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProductosIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/inventario/': {
+      id: '/app/inventario/'
+      path: '/inventario'
+      fullPath: '/app/inventario/'
+      preLoaderRoute: typeof AppInventarioIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/admin/tenants/': {
       id: '/admin/tenants/'
       path: '/tenants'
@@ -364,6 +383,7 @@ interface AppRouteChildren {
   AppIndexRoute: typeof AppIndexRoute
   AppProductosProductIdRoute: typeof AppProductosProductIdRoute
   AppProductosNuevoRoute: typeof AppProductosNuevoRoute
+  AppInventarioIndexRoute: typeof AppInventarioIndexRoute
   AppProductosIndexRoute: typeof AppProductosIndexRoute
 }
 
@@ -372,6 +392,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppIndexRoute: AppIndexRoute,
   AppProductosProductIdRoute: AppProductosProductIdRoute,
   AppProductosNuevoRoute: AppProductosNuevoRoute,
+  AppInventarioIndexRoute: AppInventarioIndexRoute,
   AppProductosIndexRoute: AppProductosIndexRoute,
 }
 
