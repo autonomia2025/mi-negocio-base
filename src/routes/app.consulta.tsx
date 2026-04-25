@@ -87,10 +87,7 @@ function ConsultaPage() {
       .eq("id", tenantId)
       .maybeSingle()
       .then(({ data }) => {
-        const ops = ((data?.settings as any)?.operations ?? {}) as {
-          moneda?: string;
-        };
-        if (ops.moneda) setMoneda(ops.moneda);
+        setMoneda(getTenantCurrency(data?.settings));
       });
     void fetchDefaultSchemaAttributes(tenantId).then(setSchemaAttrs);
     void fetchPopularProducts(tenantId).then(setPopular);
@@ -414,7 +411,7 @@ function EmptyState({
   onPick,
 }: {
   popular: QuickSearchResult[];
-  moneda: string;
+  moneda: CurrencyCode;
   onPick: (name: string) => void;
 }) {
   return (
@@ -479,7 +476,7 @@ function ExpandedCard({
   schemaAttrs,
 }: {
   product: QuickSearchResult;
-  moneda: string;
+  moneda: CurrencyCode;
   schemaAttrs: SchemaAttribute[];
 }) {
   const styles = STATUS_STYLES[product.status];
@@ -541,7 +538,7 @@ function CompactRow({
   onClick,
 }: {
   product: QuickSearchResult;
-  moneda: string;
+  moneda: CurrencyCode;
   onClick: () => void;
 }) {
   const styles = STATUS_STYLES[product.status];
