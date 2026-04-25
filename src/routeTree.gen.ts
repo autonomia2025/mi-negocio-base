@@ -18,7 +18,6 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AppOnboardingRouteImport } from './routes/app.onboarding'
-import { Route as AppBuscarRouteImport } from './routes/app.buscar'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AppProductosIndexRouteImport } from './routes/app.productos.index'
 import { Route as AppInventarioIndexRouteImport } from './routes/app.inventario.index'
@@ -74,11 +73,6 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
 const AppOnboardingRoute = AppOnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppBuscarRoute = AppBuscarRouteImport.update({
-  id: '/buscar',
-  path: '/buscar',
   getParentRoute: () => AppRoute,
 } as any)
 const AdminUsersRoute = AdminUsersRouteImport.update({
@@ -146,7 +140,6 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/select-tenant': typeof SelectTenantRoute
   '/admin/users': typeof AdminUsersRoute
-  '/app/buscar': typeof AppBuscarRoute
   '/app/onboarding': typeof AppOnboardingRoute
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
@@ -167,7 +160,6 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/select-tenant': typeof SelectTenantRoute
   '/admin/users': typeof AdminUsersRoute
-  '/app/buscar': typeof AppBuscarRoute
   '/app/onboarding': typeof AppOnboardingRoute
   '/admin': typeof AdminIndexRoute
   '/app': typeof AppIndexRoute
@@ -191,7 +183,6 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/select-tenant': typeof SelectTenantRoute
   '/admin/users': typeof AdminUsersRoute
-  '/app/buscar': typeof AppBuscarRoute
   '/app/onboarding': typeof AppOnboardingRoute
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
@@ -216,7 +207,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/select-tenant'
     | '/admin/users'
-    | '/app/buscar'
     | '/app/onboarding'
     | '/admin/'
     | '/app/'
@@ -237,7 +227,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/select-tenant'
     | '/admin/users'
-    | '/app/buscar'
     | '/app/onboarding'
     | '/admin'
     | '/app'
@@ -260,7 +249,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/select-tenant'
     | '/admin/users'
-    | '/app/buscar'
     | '/app/onboarding'
     | '/admin/'
     | '/app/'
@@ -348,13 +336,6 @@ declare module '@tanstack/react-router' {
       path: '/onboarding'
       fullPath: '/app/onboarding'
       preLoaderRoute: typeof AppOnboardingRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/buscar': {
-      id: '/app/buscar'
-      path: '/buscar'
-      fullPath: '/app/buscar'
-      preLoaderRoute: typeof AppBuscarRouteImport
       parentRoute: typeof AppRoute
     }
     '/admin/users': {
@@ -456,7 +437,6 @@ const AdminRouteChildren: AdminRouteChildren = {
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface AppRouteChildren {
-  AppBuscarRoute: typeof AppBuscarRoute
   AppOnboardingRoute: typeof AppOnboardingRoute
   AppIndexRoute: typeof AppIndexRoute
   AppInventarioEntradaRoute: typeof AppInventarioEntradaRoute
@@ -469,7 +449,6 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
-  AppBuscarRoute: AppBuscarRoute,
   AppOnboardingRoute: AppOnboardingRoute,
   AppIndexRoute: AppIndexRoute,
   AppInventarioEntradaRoute: AppInventarioEntradaRoute,
