@@ -1,6 +1,6 @@
 import { createFileRoute, Outlet, useNavigate, Link, useLocation } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Menu, X, ArrowLeftRight } from "lucide-react";
+import { Menu, X, ArrowLeftRight, Zap } from "lucide-react";
 import { useAuth, ROLE_LABELS } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -13,14 +13,32 @@ export const Route = createFileRoute("/app")({
   component: AppLayout,
 });
 
-const MENU: Array<
-  | { label: string; to: "/app" | "/app/productos" | "/app/inventario"; placeholder?: false }
-  | { label: string; placeholder: true }
-> = [
-  { label: "Dashboard", to: "/app" },
-  { label: "Catálogo", to: "/app/productos" },
-  { label: "Inventario", to: "/app/inventario" },
-  { label: "Ventas", placeholder: true },
+type MenuLink = {
+  label: string;
+  to: "/app" | "/app/productos" | "/app/inventario" | "/app/consulta";
+  roles: string[];
+  placeholder?: false;
+  highlight?: boolean;
+};
+type MenuPlaceholder = {
+  label: string;
+  placeholder: true;
+  roles: string[];
+};
+type MenuItem = MenuLink | MenuPlaceholder;
+
+const ALL_ROLES = ["tenant_owner", "gerente", "vendedor", "almacenista", "cajero"];
+const STAFF_ROLES = ["tenant_owner", "gerente", "almacenista"];
+const MANAGER_ROLES = ["tenant_owner", "gerente"];
+const SALES_ROLES = ["vendedor", "cajero"];
+
+const MENU: MenuItem[] = [
+  { label: "Consulta rápida", to: "/app/consulta", roles: ALL_ROLES, highlight: true },
+  { label: "Dashboard", to: "/app", roles: MANAGER_ROLES },
+  { label: "Catálogo", to: "/app/productos", roles: ALL_ROLES },
+  { label: "Inventario", to: "/app/inventario", roles: STAFF_ROLES },
+  { label: "Mis ventas", placeholder: true, roles: SALES_ROLES },
+  { label: "Ventas", placeholder: true, roles: MANAGER_ROLES },
 ];
 
 function AppLayout() {
@@ -108,6 +126,10 @@ function AppLayout() {
     : currentMembership
       ? ROLE_LABELS[currentMembership.role] ?? currentMembership.role
       : "";
+  const effectiveRole = isImpersonating
+    ? "tenant_owner"
+    : currentMembership?.role ?? "";
+  const visibleMenu = MENU.filter((m) => m.roles.includes(effectiveRole));
 
   if (loading || !session) {
     return (
@@ -185,7 +207,7 @@ function AppLayout() {
         )}
       </div>
       <nav className="flex-1 space-y-0.5 px-3 py-3">
-        {MENU.map((item) =>
+        {visibleMenu.map((item) =>
           item.placeholder ? (
             <div
               key={item.label}
@@ -203,15 +225,23 @@ function AppLayout() {
               to={item.to}
               activeOptions={{ exact: item.to === "/app" }}
               activeProps={{ className: "bg-accent text-accent-foreground" }}
-              className="block rounded-md px-3 py-2 text-sm text-foreground hover:bg-accent"
+              className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm text-foreground hover:bg-accent ${
+                item.highlight ? "font-semibold" : ""
+              }`}
               onClick={() => setSidebarOpen(false)}
             >
+              {item.highlight && (
+                <Zap className="h-3.5 w-3.5 text-primary" aria-hidden />
+              )}
               {item.label}
             </Link>
           ),
         )}
       </nav>
       <div className="border-t border-border px-3 py-3">
+        <div className="px-3 pb-2 text-[11px] text-muted-foreground">
+          {effectiveRoleLabel}
+        </div>
         <button
           onClick={() => void signOut()}
           className="block w-full rounded-md px-3 py-2 text-left text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
