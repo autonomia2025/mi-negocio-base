@@ -15,7 +15,7 @@ export const Route = createFileRoute("/app")({
 
 type MenuLink = {
   label: string;
-  to: "/app" | "/app/productos" | "/app/inventario" | "/app/consulta";
+  to: "/app" | "/app/productos" | "/app/inventario" | "/app/consulta" | "/app/ventas";
   roles: string[];
   placeholder?: false;
   highlight?: boolean;
@@ -37,8 +37,11 @@ const MENU: MenuItem[] = [
   { label: "Dashboard", to: "/app", roles: MANAGER_ROLES },
   { label: "Catálogo", to: "/app/productos", roles: ALL_ROLES },
   { label: "Inventario", to: "/app/inventario", roles: STAFF_ROLES },
-  { label: "Mis ventas", placeholder: true, roles: SALES_ROLES },
-  { label: "Ventas", placeholder: true, roles: MANAGER_ROLES },
+  {
+    label: "Ventas",
+    to: "/app/ventas",
+    roles: ["tenant_owner", "gerente", "vendedor", "cajero"],
+  },
 ];
 
 function AppLayout() {
