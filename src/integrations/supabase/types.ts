@@ -249,6 +249,54 @@ export type Database = {
           },
         ]
       }
+      search_log: {
+        Row: {
+          created_at: string
+          id: string
+          product_clicked: string | null
+          query: string
+          result_count: number
+          source: string
+          tenant_id: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          product_clicked?: string | null
+          query: string
+          result_count?: number
+          source: string
+          tenant_id: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          product_clicked?: string | null
+          query?: string
+          result_count?: number
+          source?: string
+          tenant_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "search_log_product_clicked_fkey"
+            columns: ["product_clicked"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "search_log_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenants: {
         Row: {
           ai_cycle_start: string
