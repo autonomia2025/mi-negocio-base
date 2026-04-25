@@ -30,7 +30,6 @@ type MenuItem = MenuLink | MenuPlaceholder;
 const ALL_ROLES = ["tenant_owner", "gerente", "vendedor", "almacenista", "cajero"];
 const STAFF_ROLES = ["tenant_owner", "gerente", "almacenista"];
 const MANAGER_ROLES = ["tenant_owner", "gerente"];
-const SALES_ROLES = ["vendedor", "cajero"];
 
 const MENU: MenuItem[] = [
   { label: "Consulta rápida", to: "/app/consulta", roles: ALL_ROLES, highlight: true },
