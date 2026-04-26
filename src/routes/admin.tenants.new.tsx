@@ -72,7 +72,7 @@ function NewTenantWizard() {
     setSubmitting(true);
     setError(null);
     try {
-      const res = await createTenantWithOwner({
+      const res = (await createTenantWithOwner({
         data: {
           name: name.trim(),
           slug: slug.trim(),
@@ -91,11 +91,22 @@ function NewTenantWizard() {
             password,
           },
         },
-      });
-      if (!res?.tenantId || typeof res.tenantId !== "string") {
-        throw new Error("La creación no devolvió un id de tenant válido");
+      })) as unknown;
+      // TanStack server fns can return either the payload directly or { result: payload }
+      const payload =
+        res && typeof res === "object" && "tenantId" in (res as Record<string, unknown>)
+          ? (res as { tenantId?: unknown })
+          : res && typeof res === "object" && "result" in (res as Record<string, unknown>)
+            ? ((res as { result: { tenantId?: unknown } }).result ?? {})
+            : {};
+      const tenantId = (payload as { tenantId?: unknown }).tenantId;
+      if (!tenantId || typeof tenantId !== "string") {
+        console.error("createTenantWithOwner unexpected response:", res);
+        throw new Error(
+          "La creación no devolvió un id de tenant válido. Revisa la consola para ver la respuesta cruda.",
+        );
       }
-      void navigate({ to: "/admin/tenants/$id", params: { id: res.tenantId } });
+      void navigate({ to: "/admin/tenants/$id", params: { id: tenantId } });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error desconocido");
     } finally {
