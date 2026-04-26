@@ -73,6 +73,7 @@ function TenantDetail() {
   const [error, setError] = useState<string | null>(null);
 
   const load = async () => {
+    if (!id || id === "undefined") return;
     const { data, error } = await supabase
       .from("tenants")
       .select(
@@ -87,6 +88,22 @@ function TenantDetail() {
   useEffect(() => {
     void load();
   }, [id]);
+
+  if (!id || id === "undefined") {
+    return (
+      <div className="space-y-3">
+        <Link
+          to="/admin/tenants"
+          className="text-xs text-muted-foreground hover:text-foreground"
+        >
+          ← Volver a tenants
+        </Link>
+        <div className="rounded-md border border-destructive/30 bg-destructive/5 px-4 py-6 text-sm text-destructive">
+          ID de tenant inválido. Vuelve al listado y selecciona un tenant válido.
+        </div>
+      </div>
+    );
+  }
 
   if (error)
     return <div className="text-sm text-destructive">{error}</div>;
