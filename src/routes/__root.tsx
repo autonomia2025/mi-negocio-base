@@ -33,6 +33,13 @@ export const Route = createRootRoute({
       { title: "ERP" },
       { name: "description", content: "Sistema ERP multiempresa" },
       { property: "og:type", content: "website" },
+      { property: "og:title", content: "ERP" },
+      { name: "twitter:title", content: "ERP" },
+      { property: "og:description", content: "Sistema ERP multiempresa" },
+      { name: "twitter:description", content: "Sistema ERP multiempresa" },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/03479053-5b80-4637-bb42-9e88c800d80f/id-preview-d553c0a3--47b0716f-3fae-4a68-a69c-9a905d97fb46.lovable.app-1777164438167.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/03479053-5b80-4637-bb42-9e88c800d80f/id-preview-d553c0a3--47b0716f-3fae-4a68-a69c-9a905d97fb46.lovable.app-1777164438167.png" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
       {
