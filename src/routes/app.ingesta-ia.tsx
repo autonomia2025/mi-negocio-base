@@ -23,6 +23,7 @@ import {
   type Intent,
 } from "@/utils/ai";
 import { PAYMENT_METHODS, PAYMENT_LABELS, type PaymentMethod } from "@/utils/sales";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 export const Route = createFileRoute("/app/ingesta-ia")({
   component: IngestaIAPage,
@@ -567,6 +568,7 @@ function ConfirmScreen({
   const [submitting, setSubmitting] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [schemaAttrs, setSchemaAttrs] = useState<SchemaAttr[]>([]);
+  const [discardOpen, setDiscardOpen] = useState(false);
 
   useEffect(() => {
     void supabase
@@ -604,8 +606,7 @@ function ConfirmScreen({
     }));
   };
 
-  const handleDiscard = async () => {
-    if (!window.confirm("¿Seguro que quieres descartar esta ingesta?")) return;
+  const performDiscard = async () => {
     try {
       await discardIngestion(ingestionId);
       toast.success("Ingesta descartada");
@@ -797,7 +798,7 @@ function ConfirmScreen({
       <div className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-background/95 px-4 py-3 backdrop-blur md:left-64">
         <div className="mx-auto flex max-w-5xl items-center justify-end gap-2">
           <button
-            onClick={() => void handleDiscard()}
+            onClick={() => setDiscardOpen(true)}
             disabled={submitting}
             className="rounded-md border border-rose-300 bg-background px-4 py-2 text-sm font-medium text-rose-700 hover:bg-rose-50 disabled:opacity-50"
           >
@@ -812,6 +813,16 @@ function ConfirmScreen({
           </button>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={discardOpen}
+        onOpenChange={setDiscardOpen}
+        title="¿Descartar ingesta?"
+        message="La IA procesó esta entrada pero no se guardará nada en el sistema."
+        confirmLabel="Descartar"
+        confirmVariant="danger"
+        onConfirm={performDiscard}
+      />
     </div>
   );
 }
