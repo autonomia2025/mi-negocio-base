@@ -19,8 +19,11 @@ import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AppOnboardingRouteImport } from './routes/app.onboarding'
 import { Route as AppIngestaIaRouteImport } from './routes/app.ingesta-ia'
+import { Route as AppEquipoRouteImport } from './routes/app.equipo'
 import { Route as AppDashboardRouteImport } from './routes/app.dashboard'
 import { Route as AppConsultaRouteImport } from './routes/app.consulta'
+import { Route as AppConfiguracionRouteImport } from './routes/app.configuracion'
+import { Route as AppAuditoriaRouteImport } from './routes/app.auditoria'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AppVentasIndexRouteImport } from './routes/app.ventas.index'
 import { Route as AppProductosIndexRouteImport } from './routes/app.productos.index'
@@ -88,6 +91,11 @@ const AppIngestaIaRoute = AppIngestaIaRouteImport.update({
   path: '/ingesta-ia',
   getParentRoute: () => AppRoute,
 } as any)
+const AppEquipoRoute = AppEquipoRouteImport.update({
+  id: '/equipo',
+  path: '/equipo',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppDashboardRoute = AppDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -96,6 +104,16 @@ const AppDashboardRoute = AppDashboardRouteImport.update({
 const AppConsultaRoute = AppConsultaRouteImport.update({
   id: '/consulta',
   path: '/consulta',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppConfiguracionRoute = AppConfiguracionRouteImport.update({
+  id: '/configuracion',
+  path: '/configuracion',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAuditoriaRoute = AppAuditoriaRouteImport.update({
+  id: '/auditoria',
+  path: '/auditoria',
   getParentRoute: () => AppRoute,
 } as any)
 const AdminUsersRoute = AdminUsersRouteImport.update({
@@ -188,8 +206,11 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/select-tenant': typeof SelectTenantRoute
   '/admin/users': typeof AdminUsersRoute
+  '/app/auditoria': typeof AppAuditoriaRoute
+  '/app/configuracion': typeof AppConfiguracionRoute
   '/app/consulta': typeof AppConsultaRoute
   '/app/dashboard': typeof AppDashboardRoute
+  '/app/equipo': typeof AppEquipoRoute
   '/app/ingesta-ia': typeof AppIngestaIaRoute
   '/app/onboarding': typeof AppOnboardingRoute
   '/admin/': typeof AdminIndexRoute
@@ -216,8 +237,11 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/select-tenant': typeof SelectTenantRoute
   '/admin/users': typeof AdminUsersRoute
+  '/app/auditoria': typeof AppAuditoriaRoute
+  '/app/configuracion': typeof AppConfiguracionRoute
   '/app/consulta': typeof AppConsultaRoute
   '/app/dashboard': typeof AppDashboardRoute
+  '/app/equipo': typeof AppEquipoRoute
   '/app/ingesta-ia': typeof AppIngestaIaRoute
   '/app/onboarding': typeof AppOnboardingRoute
   '/admin': typeof AdminIndexRoute
@@ -247,8 +271,11 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/select-tenant': typeof SelectTenantRoute
   '/admin/users': typeof AdminUsersRoute
+  '/app/auditoria': typeof AppAuditoriaRoute
+  '/app/configuracion': typeof AppConfiguracionRoute
   '/app/consulta': typeof AppConsultaRoute
   '/app/dashboard': typeof AppDashboardRoute
+  '/app/equipo': typeof AppEquipoRoute
   '/app/ingesta-ia': typeof AppIngestaIaRoute
   '/app/onboarding': typeof AppOnboardingRoute
   '/admin/': typeof AdminIndexRoute
@@ -279,8 +306,11 @@ export interface FileRouteTypes {
     | '/login'
     | '/select-tenant'
     | '/admin/users'
+    | '/app/auditoria'
+    | '/app/configuracion'
     | '/app/consulta'
     | '/app/dashboard'
+    | '/app/equipo'
     | '/app/ingesta-ia'
     | '/app/onboarding'
     | '/admin/'
@@ -307,8 +337,11 @@ export interface FileRouteTypes {
     | '/login'
     | '/select-tenant'
     | '/admin/users'
+    | '/app/auditoria'
+    | '/app/configuracion'
     | '/app/consulta'
     | '/app/dashboard'
+    | '/app/equipo'
     | '/app/ingesta-ia'
     | '/app/onboarding'
     | '/admin'
@@ -337,8 +370,11 @@ export interface FileRouteTypes {
     | '/login'
     | '/select-tenant'
     | '/admin/users'
+    | '/app/auditoria'
+    | '/app/configuracion'
     | '/app/consulta'
     | '/app/dashboard'
+    | '/app/equipo'
     | '/app/ingesta-ia'
     | '/app/onboarding'
     | '/admin/'
@@ -441,6 +477,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIngestaIaRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/equipo': {
+      id: '/app/equipo'
+      path: '/equipo'
+      fullPath: '/app/equipo'
+      preLoaderRoute: typeof AppEquipoRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/dashboard': {
       id: '/app/dashboard'
       path: '/dashboard'
@@ -453,6 +496,20 @@ declare module '@tanstack/react-router' {
       path: '/consulta'
       fullPath: '/app/consulta'
       preLoaderRoute: typeof AppConsultaRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/configuracion': {
+      id: '/app/configuracion'
+      path: '/configuracion'
+      fullPath: '/app/configuracion'
+      preLoaderRoute: typeof AppConfiguracionRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/auditoria': {
+      id: '/app/auditoria'
+      path: '/auditoria'
+      fullPath: '/app/auditoria'
+      preLoaderRoute: typeof AppAuditoriaRouteImport
       parentRoute: typeof AppRoute
     }
     '/admin/users': {
@@ -589,8 +646,11 @@ const AdminRouteChildren: AdminRouteChildren = {
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface AppRouteChildren {
+  AppAuditoriaRoute: typeof AppAuditoriaRoute
+  AppConfiguracionRoute: typeof AppConfiguracionRoute
   AppConsultaRoute: typeof AppConsultaRoute
   AppDashboardRoute: typeof AppDashboardRoute
+  AppEquipoRoute: typeof AppEquipoRoute
   AppIngestaIaRoute: typeof AppIngestaIaRoute
   AppOnboardingRoute: typeof AppOnboardingRoute
   AppIndexRoute: typeof AppIndexRoute
@@ -609,8 +669,11 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppAuditoriaRoute: AppAuditoriaRoute,
+  AppConfiguracionRoute: AppConfiguracionRoute,
   AppConsultaRoute: AppConsultaRoute,
   AppDashboardRoute: AppDashboardRoute,
+  AppEquipoRoute: AppEquipoRoute,
   AppIngestaIaRoute: AppIngestaIaRoute,
   AppOnboardingRoute: AppOnboardingRoute,
   AppIndexRoute: AppIndexRoute,

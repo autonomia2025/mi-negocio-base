@@ -25,7 +25,10 @@ type MenuLink = {
     | "/app/ingesta-ia"
     | "/app/dashboard"
     | "/app/reportes/cortes"
-    | "/app/reportes/reorden";
+    | "/app/reportes/reorden"
+    | "/app/equipo"
+    | "/app/configuracion"
+    | "/app/auditoria";
   roles: string[];
   placeholder?: false;
   highlight?: boolean;
@@ -68,6 +71,10 @@ const MENU: MenuItem[] = [
   { kind: "section", label: "Reportes", roles: MANAGER_ROLES },
   { label: "Cortes de caja", to: "/app/reportes/cortes", roles: MANAGER_ROLES },
   { label: "Alertas de reorden", to: "/app/reportes/reorden", roles: MANAGER_ROLES },
+  { kind: "section", label: "Administración", roles: ["tenant_owner"] },
+  { label: "Equipo", to: "/app/equipo", roles: ["tenant_owner"] },
+  { label: "Configuración", to: "/app/configuracion", roles: ["tenant_owner"] },
+  { label: "Auditoría", to: "/app/auditoria", roles: ["tenant_owner", "gerente"] },
 ];
 
 function AppLayout() {
