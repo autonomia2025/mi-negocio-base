@@ -114,7 +114,7 @@ export const saveOnboardingSettings = createServerFn({ method: "POST" })
       .eq("id", data.tenantId);
     if (updateErr) throw new Error(updateErr.message);
 
-    return { settings };
+    return { ok: true };
   });
 
 export const inviteTenantUser = createServerFn({ method: "POST" })
