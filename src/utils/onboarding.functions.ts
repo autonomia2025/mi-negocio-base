@@ -34,6 +34,89 @@ const InviteSchema = z.object({
   role: z.enum(["gerente", "vendedor", "almacenista", "cajero"]),
 });
 
+const OnboardingSettingsPatch = z
+  .object({
+    onboarding_completed: z.boolean().optional(),
+    onboarding_completed_at: z.string().nullable().optional(),
+    onboarding_step: z.number().int().min(0).max(20).optional(),
+    business: z
+      .object({
+        razon_social: z.string().trim().max(160).optional(),
+        rfc: z.string().trim().max(20).nullable().optional(),
+        direccion_fiscal: z.string().trim().max(500).optional(),
+        telefono: z.string().trim().max(40).optional(),
+        correo_contacto: z.string().trim().email().max(255).optional(),
+        sitio_web: z.string().trim().max(255).nullable().optional(),
+        logo_url: z.string().trim().max(500).nullable().optional(),
+        catalog_description: z.string().trim().max(1000).optional(),
+      })
+      .partial()
+      .optional(),
+    operations: z
+      .object({
+        moneda: z.enum(["MXN", "USD", "EUR"]).optional(),
+        usa_cfdi: z.boolean().optional(),
+        punto_reorden_default: z.number().min(0).optional(),
+        metodos_pago: z.array(z.string().trim().min(1).max(80)).optional(),
+        zona_horaria: z.string().trim().max(80).optional(),
+      })
+      .partial()
+      .optional(),
+  })
+  .partial();
+
+const SaveOnboardingSchema = z.object({
+  tenantId: z.string().uuid(),
+  patch: OnboardingSettingsPatch,
+  nextStep: z.number().int().min(0).max(20),
+});
+
+function deepMerge<T extends Record<string, unknown>>(a: T, b: Record<string, unknown>): T {
+  const out: Record<string, unknown> = { ...a };
+  for (const [k, v] of Object.entries(b)) {
+    if (
+      v !== null &&
+      typeof v === "object" &&
+      !Array.isArray(v) &&
+      typeof out[k] === "object" &&
+      out[k] !== null &&
+      !Array.isArray(out[k])
+    ) {
+      out[k] = deepMerge(out[k] as Record<string, unknown>, v as Record<string, unknown>);
+    } else {
+      out[k] = v;
+    }
+  }
+  return out as T;
+}
+
+export const saveOnboardingSettings = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => SaveOnboardingSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    await assertCanInvite(context.userId, data.tenantId);
+
+    const { data: current, error: fetchErr } = await supabaseAdmin
+      .from("tenants")
+      .select("settings")
+      .eq("id", data.tenantId)
+      .single();
+    if (fetchErr || !current) throw new Error(fetchErr?.message ?? "Tenant no encontrado");
+
+    const settings = deepMerge(
+      ((current.settings as Record<string, unknown>) ?? {}),
+      { ...data.patch, onboarding_step: data.nextStep },
+    );
+
+    const { error: updateErr } = await supabaseAdmin
+      .from("tenants")
+      .update({ settings: settings as never })
+      .eq("id", data.tenantId);
+    if (updateErr) throw new Error(updateErr.message);
+
+    return { settings };
+  });
+
 export const inviteTenantUser = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => InviteSchema.parse(input))
