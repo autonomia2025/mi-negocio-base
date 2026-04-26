@@ -282,32 +282,40 @@ export const getTenantOwners = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertSuperAdmin(context.userId);
-    const { data, error } = await supabaseAdmin
-      .from("user_tenants")
-      .select("tenant_id, user_id, role")
-      .eq("role", "tenant_owner")
-      .eq("is_active", true);
-    if (error) throw new Error(error.message);
+    try {
+      const { data, error } = await supabaseAdmin
+        .from("user_tenants")
+        .select("tenant_id, user_id, role")
+        .eq("role", "tenant_owner")
+        .eq("is_active", true);
+      if (error) throw new Error(error.message);
 
-    const userIds = Array.from(new Set((data ?? []).map((r) => r.user_id)));
-    const emails = new Map<string, string>();
-    if (userIds.length > 0) {
-      const { data: list } = await supabaseAdmin.auth.admin.listUsers({
-        page: 1,
-        perPage: 500,
-      });
-      for (const u of list?.users ?? []) {
-        emails.set(u.id, u.email ?? "");
+      const userIds = Array.from(new Set((data ?? []).map((r) => r.user_id)));
+      const emails = new Map<string, string>();
+      if (userIds.length > 0) {
+        const { data: list } = await supabaseAdmin.auth.admin.listUsers({
+          page: 1,
+          perPage: 500,
+        });
+        for (const u of list?.users ?? []) {
+          emails.set(u.id, u.email ?? "");
+        }
       }
-    }
 
-    const ownersByTenant: Record<string, { user_id: string; email: string }[]> = {};
-    for (const r of data ?? []) {
-      const arr = ownersByTenant[r.tenant_id] ?? [];
-      arr.push({ user_id: r.user_id, email: emails.get(r.user_id) ?? "" });
-      ownersByTenant[r.tenant_id] = arr;
+      const ownersByTenant: Record<string, { user_id: string; email: string }[]> = {};
+      for (const r of data ?? []) {
+        const arr = ownersByTenant[r.tenant_id] ?? [];
+        arr.push({ user_id: r.user_id, email: emails.get(r.user_id) ?? "" });
+        ownersByTenant[r.tenant_id] = arr;
+      }
+      return { ownersByTenant };
+    } catch (e) {
+      console.error("getTenantOwners failed:", e);
+      return {
+        ownersByTenant: {} as Record<string, { user_id: string; email: string }[]>,
+        warning: "No se pudieron cargar los dueños",
+      };
     }
-    return { ownersByTenant };
   });
 
 export const getTenantMembers = createServerFn({ method: "GET" })

@@ -31,6 +31,7 @@ type Tenant = {
 function TenantsList() {
   const [rows, setRows] = useState<Tenant[] | null>(null);
   const [owners, setOwners] = useState<Record<string, { email: string }[]>>({});
+  const [ownersError, setOwnersError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -42,6 +43,7 @@ function TenantsList() {
       .select(
         "id, name, slug, subscription_plan, subscription_status, ai_ops_used, ai_ops_limit, created_at",
       )
+      .eq("is_system", false)
       .order("created_at", { ascending: false });
     if (error) {
       setError(error.message);
@@ -54,7 +56,12 @@ function TenantsList() {
     void reload();
     void getTenantOwners()
       .then((r) => setOwners(r.ownersByTenant))
-      .catch(() => setOwners({}));
+      .catch((e) => {
+        setOwners({});
+        setOwnersError(
+          e instanceof Error ? e.message : "No se pudieron cargar los dueños",
+        );
+      });
   }, []);
 
   const filtered = useMemo(() => {
@@ -150,6 +157,12 @@ function TenantsList() {
         </div>
       )}
 
+      {ownersError && (
+        <div className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+          No se pudieron cargar los dueños de cada tenant. La lista sigue funcional.
+        </div>
+      )}
+
       <div className="overflow-x-auto rounded-lg border border-border bg-card">
         <table className="w-full text-sm">
           <thead>
@@ -177,7 +190,9 @@ function TenantsList() {
               </tr>
             ) : (
               filtered.map((t) => {
-                const ownerEmail = owners[t.id]?.[0]?.email ?? "—";
+                const ownerList =
+                  owners && typeof owners === "object" ? owners[t.id] : null;
+                const ownerEmail = ownerList?.[0]?.email ?? "—";
                 const pct =
                   t.ai_ops_limit > 0
                     ? Math.min(100, Math.round((t.ai_ops_used / t.ai_ops_limit) * 100))

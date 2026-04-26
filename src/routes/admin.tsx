@@ -89,6 +89,9 @@ function AdminLayout() {
             Salir de impersonación
           </button>
         )}
+        <div className="px-3 py-1 text-[10px] uppercase tracking-wide text-muted-foreground">
+          Super admin · MEXINTLI HQ
+        </div>
         <div className="px-3 py-1 text-xs text-muted-foreground truncate">
           {user?.email}
         </div>
