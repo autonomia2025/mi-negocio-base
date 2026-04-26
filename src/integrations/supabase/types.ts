@@ -584,9 +584,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cash_reconciliation: {
+        Args: {
+          p_from: string
+          p_tenant_id: string
+          p_to: string
+          p_user_id?: string
+        }
+        Returns: Json
+      }
       current_user_role_in_tenant: {
         Args: { tenant_uuid: string }
         Returns: string
+      }
+      dashboard_kpis: {
+        Args: { p_from: string; p_tenant_id: string; p_to: string }
+        Returns: Json
       }
       increment_ai_usage: {
         Args: { p_amount?: number; p_tenant_id: string }
@@ -618,6 +631,53 @@ export type Database = {
           p_tenant_id: string
         }
         Returns: string
+      }
+      reorder_alerts: {
+        Args: { p_days_horizon?: number; p_tenant_id: string }
+        Returns: {
+          current_stock: number
+          daily_velocity: number
+          days_remaining: number
+          min_stock: number
+          name: string
+          product_id: string
+          reorder_point: number
+          severity: string
+          sku: string
+        }[]
+      }
+      sales_by_day: {
+        Args: { p_from: string; p_tenant_id: string; p_to: string }
+        Returns: {
+          day: string
+          profit: number
+          sale_count: number
+          total: number
+        }[]
+      }
+      sales_by_payment_method: {
+        Args: { p_from: string; p_tenant_id: string; p_to: string }
+        Returns: {
+          payment_method: string
+          sale_count: number
+          total: number
+        }[]
+      }
+      top_products: {
+        Args: {
+          p_from: string
+          p_metric?: string
+          p_tenant_id: string
+          p_to: string
+        }
+        Returns: {
+          name: string
+          product_id: string
+          sku: string
+          total_profit: number
+          total_qty: number
+          total_revenue: number
+        }[]
       }
       void_sale: {
         Args: { p_reason: string; p_sale_id: string }

@@ -8,7 +8,7 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  const { loading, session, currentTenantId, memberships } = useAuth();
+  const { loading, session, currentTenantId, currentMembership, memberships } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -18,14 +18,23 @@ function Index() {
       return;
     }
     if (currentTenantId) {
-      void navigate({ to: "/app" });
+      const role = currentMembership?.role;
+      if (role === "tenant_owner" || role === "gerente") {
+        void navigate({ to: "/app/dashboard" });
+      } else if (role === "almacenista") {
+        void navigate({ to: "/app/inventario" });
+      } else if (role === "vendedor" || role === "cajero") {
+        void navigate({ to: "/app/consulta" });
+      } else {
+        void navigate({ to: "/app" });
+      }
     } else if (memberships.length === 0) {
       // user without tenants — keep them on a simple message
       return;
     } else {
       void navigate({ to: "/select-tenant" });
     }
-  }, [loading, session, currentTenantId, memberships, navigate]);
+  }, [loading, session, currentTenantId, currentMembership, memberships, navigate]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background">

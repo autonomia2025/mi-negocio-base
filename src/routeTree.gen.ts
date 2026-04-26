@@ -19,6 +19,7 @@ import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AppOnboardingRouteImport } from './routes/app.onboarding'
 import { Route as AppIngestaIaRouteImport } from './routes/app.ingesta-ia'
+import { Route as AppDashboardRouteImport } from './routes/app.dashboard'
 import { Route as AppConsultaRouteImport } from './routes/app.consulta'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AppVentasIndexRouteImport } from './routes/app.ventas.index'
@@ -27,6 +28,8 @@ import { Route as AppInventarioIndexRouteImport } from './routes/app.inventario.
 import { Route as AdminTenantsIndexRouteImport } from './routes/admin.tenants.index'
 import { Route as AppVentasNuevaRouteImport } from './routes/app.ventas.nueva'
 import { Route as AppVentasSaleIdRouteImport } from './routes/app.ventas.$saleId'
+import { Route as AppReportesReordenRouteImport } from './routes/app.reportes.reorden'
+import { Route as AppReportesCortesRouteImport } from './routes/app.reportes.cortes'
 import { Route as AppProductosNuevoRouteImport } from './routes/app.productos.nuevo'
 import { Route as AppProductosProductIdRouteImport } from './routes/app.productos.$productId'
 import { Route as AppInventarioSalidaRouteImport } from './routes/app.inventario.salida'
@@ -85,6 +88,11 @@ const AppIngestaIaRoute = AppIngestaIaRouteImport.update({
   path: '/ingesta-ia',
   getParentRoute: () => AppRoute,
 } as any)
+const AppDashboardRoute = AppDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppConsultaRoute = AppConsultaRouteImport.update({
   id: '/consulta',
   path: '/consulta',
@@ -123,6 +131,16 @@ const AppVentasNuevaRoute = AppVentasNuevaRouteImport.update({
 const AppVentasSaleIdRoute = AppVentasSaleIdRouteImport.update({
   id: '/ventas/$saleId',
   path: '/ventas/$saleId',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppReportesReordenRoute = AppReportesReordenRouteImport.update({
+  id: '/reportes/reorden',
+  path: '/reportes/reorden',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppReportesCortesRoute = AppReportesCortesRouteImport.update({
+  id: '/reportes/cortes',
+  path: '/reportes/cortes',
   getParentRoute: () => AppRoute,
 } as any)
 const AppProductosNuevoRoute = AppProductosNuevoRouteImport.update({
@@ -171,6 +189,7 @@ export interface FileRoutesByFullPath {
   '/select-tenant': typeof SelectTenantRoute
   '/admin/users': typeof AdminUsersRoute
   '/app/consulta': typeof AppConsultaRoute
+  '/app/dashboard': typeof AppDashboardRoute
   '/app/ingesta-ia': typeof AppIngestaIaRoute
   '/app/onboarding': typeof AppOnboardingRoute
   '/admin/': typeof AdminIndexRoute
@@ -182,6 +201,8 @@ export interface FileRoutesByFullPath {
   '/app/inventario/salida': typeof AppInventarioSalidaRoute
   '/app/productos/$productId': typeof AppProductosProductIdRoute
   '/app/productos/nuevo': typeof AppProductosNuevoRoute
+  '/app/reportes/cortes': typeof AppReportesCortesRoute
+  '/app/reportes/reorden': typeof AppReportesReordenRoute
   '/app/ventas/$saleId': typeof AppVentasSaleIdRoute
   '/app/ventas/nueva': typeof AppVentasNuevaRoute
   '/admin/tenants/': typeof AdminTenantsIndexRoute
@@ -196,6 +217,7 @@ export interface FileRoutesByTo {
   '/select-tenant': typeof SelectTenantRoute
   '/admin/users': typeof AdminUsersRoute
   '/app/consulta': typeof AppConsultaRoute
+  '/app/dashboard': typeof AppDashboardRoute
   '/app/ingesta-ia': typeof AppIngestaIaRoute
   '/app/onboarding': typeof AppOnboardingRoute
   '/admin': typeof AdminIndexRoute
@@ -207,6 +229,8 @@ export interface FileRoutesByTo {
   '/app/inventario/salida': typeof AppInventarioSalidaRoute
   '/app/productos/$productId': typeof AppProductosProductIdRoute
   '/app/productos/nuevo': typeof AppProductosNuevoRoute
+  '/app/reportes/cortes': typeof AppReportesCortesRoute
+  '/app/reportes/reorden': typeof AppReportesReordenRoute
   '/app/ventas/$saleId': typeof AppVentasSaleIdRoute
   '/app/ventas/nueva': typeof AppVentasNuevaRoute
   '/admin/tenants': typeof AdminTenantsIndexRoute
@@ -224,6 +248,7 @@ export interface FileRoutesById {
   '/select-tenant': typeof SelectTenantRoute
   '/admin/users': typeof AdminUsersRoute
   '/app/consulta': typeof AppConsultaRoute
+  '/app/dashboard': typeof AppDashboardRoute
   '/app/ingesta-ia': typeof AppIngestaIaRoute
   '/app/onboarding': typeof AppOnboardingRoute
   '/admin/': typeof AdminIndexRoute
@@ -235,6 +260,8 @@ export interface FileRoutesById {
   '/app/inventario/salida': typeof AppInventarioSalidaRoute
   '/app/productos/$productId': typeof AppProductosProductIdRoute
   '/app/productos/nuevo': typeof AppProductosNuevoRoute
+  '/app/reportes/cortes': typeof AppReportesCortesRoute
+  '/app/reportes/reorden': typeof AppReportesReordenRoute
   '/app/ventas/$saleId': typeof AppVentasSaleIdRoute
   '/app/ventas/nueva': typeof AppVentasNuevaRoute
   '/admin/tenants/': typeof AdminTenantsIndexRoute
@@ -253,6 +280,7 @@ export interface FileRouteTypes {
     | '/select-tenant'
     | '/admin/users'
     | '/app/consulta'
+    | '/app/dashboard'
     | '/app/ingesta-ia'
     | '/app/onboarding'
     | '/admin/'
@@ -264,6 +292,8 @@ export interface FileRouteTypes {
     | '/app/inventario/salida'
     | '/app/productos/$productId'
     | '/app/productos/nuevo'
+    | '/app/reportes/cortes'
+    | '/app/reportes/reorden'
     | '/app/ventas/$saleId'
     | '/app/ventas/nueva'
     | '/admin/tenants/'
@@ -278,6 +308,7 @@ export interface FileRouteTypes {
     | '/select-tenant'
     | '/admin/users'
     | '/app/consulta'
+    | '/app/dashboard'
     | '/app/ingesta-ia'
     | '/app/onboarding'
     | '/admin'
@@ -289,6 +320,8 @@ export interface FileRouteTypes {
     | '/app/inventario/salida'
     | '/app/productos/$productId'
     | '/app/productos/nuevo'
+    | '/app/reportes/cortes'
+    | '/app/reportes/reorden'
     | '/app/ventas/$saleId'
     | '/app/ventas/nueva'
     | '/admin/tenants'
@@ -305,6 +338,7 @@ export interface FileRouteTypes {
     | '/select-tenant'
     | '/admin/users'
     | '/app/consulta'
+    | '/app/dashboard'
     | '/app/ingesta-ia'
     | '/app/onboarding'
     | '/admin/'
@@ -316,6 +350,8 @@ export interface FileRouteTypes {
     | '/app/inventario/salida'
     | '/app/productos/$productId'
     | '/app/productos/nuevo'
+    | '/app/reportes/cortes'
+    | '/app/reportes/reorden'
     | '/app/ventas/$saleId'
     | '/app/ventas/nueva'
     | '/admin/tenants/'
@@ -405,6 +441,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIngestaIaRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/dashboard': {
+      id: '/app/dashboard'
+      path: '/dashboard'
+      fullPath: '/app/dashboard'
+      preLoaderRoute: typeof AppDashboardRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/consulta': {
       id: '/app/consulta'
       path: '/consulta'
@@ -459,6 +502,20 @@ declare module '@tanstack/react-router' {
       path: '/ventas/$saleId'
       fullPath: '/app/ventas/$saleId'
       preLoaderRoute: typeof AppVentasSaleIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/reportes/reorden': {
+      id: '/app/reportes/reorden'
+      path: '/reportes/reorden'
+      fullPath: '/app/reportes/reorden'
+      preLoaderRoute: typeof AppReportesReordenRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/reportes/cortes': {
+      id: '/app/reportes/cortes'
+      path: '/reportes/cortes'
+      fullPath: '/app/reportes/cortes'
+      preLoaderRoute: typeof AppReportesCortesRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/productos/nuevo': {
@@ -533,6 +590,7 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface AppRouteChildren {
   AppConsultaRoute: typeof AppConsultaRoute
+  AppDashboardRoute: typeof AppDashboardRoute
   AppIngestaIaRoute: typeof AppIngestaIaRoute
   AppOnboardingRoute: typeof AppOnboardingRoute
   AppIndexRoute: typeof AppIndexRoute
@@ -541,6 +599,8 @@ interface AppRouteChildren {
   AppInventarioSalidaRoute: typeof AppInventarioSalidaRoute
   AppProductosProductIdRoute: typeof AppProductosProductIdRoute
   AppProductosNuevoRoute: typeof AppProductosNuevoRoute
+  AppReportesCortesRoute: typeof AppReportesCortesRoute
+  AppReportesReordenRoute: typeof AppReportesReordenRoute
   AppVentasSaleIdRoute: typeof AppVentasSaleIdRoute
   AppVentasNuevaRoute: typeof AppVentasNuevaRoute
   AppInventarioIndexRoute: typeof AppInventarioIndexRoute
@@ -550,6 +610,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppConsultaRoute: AppConsultaRoute,
+  AppDashboardRoute: AppDashboardRoute,
   AppIngestaIaRoute: AppIngestaIaRoute,
   AppOnboardingRoute: AppOnboardingRoute,
   AppIndexRoute: AppIndexRoute,
@@ -558,6 +619,8 @@ const AppRouteChildren: AppRouteChildren = {
   AppInventarioSalidaRoute: AppInventarioSalidaRoute,
   AppProductosProductIdRoute: AppProductosProductIdRoute,
   AppProductosNuevoRoute: AppProductosNuevoRoute,
+  AppReportesCortesRoute: AppReportesCortesRoute,
+  AppReportesReordenRoute: AppReportesReordenRoute,
   AppVentasSaleIdRoute: AppVentasSaleIdRoute,
   AppVentasNuevaRoute: AppVentasNuevaRoute,
   AppInventarioIndexRoute: AppInventarioIndexRoute,
