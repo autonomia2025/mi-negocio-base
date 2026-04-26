@@ -69,36 +69,34 @@ export const createTenantWithOwner = createServerFn({ method: "POST" })
 
     // Create or reuse the auth user
     let ownerUserId: string | null = null;
-    const { data: created, error: createErr } =
-      await supabaseAdmin.auth.admin.createUser({
-        email: data.owner.email,
-        password: data.owner.password,
-        email_confirm: true,
-        user_metadata: {
-          full_name: data.owner.full_name,
-          phone: data.owner.phone ?? null,
-        },
-      });
-    if (createErr) {
-      // If already exists, look it up
-      const msg = createErr.message?.toLowerCase() ?? "";
-      if (msg.includes("already") || msg.includes("registered")) {
-        const { data: list, error: listErr } =
-          await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 200 });
-        if (listErr) throw new Error(listErr.message);
-        const found = list.users.find(
-          (u) => u.email?.toLowerCase() === data.owner.email.toLowerCase(),
-        );
-        if (!found)
-          throw new Error("No se pudo crear ni localizar el usuario");
-        ownerUserId = found.id;
+    // Lookup-first to avoid brittle error-message parsing
+    ownerUserId = await findUserIdByEmail(data.owner.email);
+    if (!ownerUserId) {
+      const { data: created, error: createErr } =
+        await supabaseAdmin.auth.admin.createUser({
+          email: data.owner.email,
+          password: data.owner.password,
+          email_confirm: true,
+          user_metadata: {
+            full_name: data.owner.full_name,
+            phone: data.owner.phone ?? null,
+          },
+        });
+      if (createErr) {
+        // Race: someone created the user between lookup and create
+        const fallback = await findUserIdByEmail(data.owner.email);
+        if (fallback) {
+          ownerUserId = fallback;
+        } else {
+          throw new Error(createErr.message);
+        }
       } else {
-        throw new Error(createErr.message);
+        ownerUserId = created.user?.id ?? null;
       }
-    } else {
-      ownerUserId = created.user?.id ?? null;
     }
-    if (!ownerUserId) throw new Error("No se obtuvo el id del usuario");
+    if (!ownerUserId || typeof ownerUserId !== "string") {
+      throw new Error("No se pudo obtener el id del usuario dueño");
+    }
 
     // Create tenant
     const { data: tenant, error: tErr } = await supabaseAdmin
