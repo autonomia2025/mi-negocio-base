@@ -17,12 +17,15 @@ async function assertSuperAdmin(userId: string) {
 
 async function findUserIdByEmail(email: string): Promise<string | null> {
   const target = email.toLowerCase();
-  for (let page = 1; page <= 10; page++) {
+  for (let page = 1; page <= 20; page++) {
     const { data, error } = await supabaseAdmin.auth.admin.listUsers({
       page,
       perPage: 200,
     });
-    if (error) throw new Error(error.message);
+    if (error) {
+      console.error("findUserIdByEmail listUsers error:", error);
+      throw new Error(error.message);
+    }
     const found = data.users.find((u) => u.email?.toLowerCase() === target);
     if (found) return found.id;
     if (data.users.length < 200) return null;
@@ -53,16 +56,25 @@ const CreateTenantSchema = z.object({
 
 export const createTenantWithOwner = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => CreateTenantSchema.parse(input))
+  .inputValidator((input: unknown) => {
+    const unwrapped =
+      input && typeof input === "object" && "data" in (input as Record<string, unknown>)
+        ? (input as { data: unknown }).data
+        : input;
+    return CreateTenantSchema.parse(unwrapped);
+  })
   .handler(async ({ data, context }) => {
     await assertSuperAdmin(context.userId);
 
     // Slug uniqueness pre-check (DB still enforces it)
-    const { data: existing } = await supabaseAdmin
+    const { data: existing, error: existingErr } = await supabaseAdmin
       .from("tenants")
       .select("id")
       .eq("slug", data.slug)
       .limit(1);
+    if (existingErr) {
+      console.error("createTenantWithOwner slug check error:", existingErr);
+    }
     if (existing && existing.length > 0) {
       throw new Error("El slug ya está en uso");
     }
@@ -83,6 +95,7 @@ export const createTenantWithOwner = createServerFn({ method: "POST" })
           },
         });
       if (createErr) {
+        console.error("createTenantWithOwner createUser error:", createErr);
         // Race: someone created the user between lookup and create
         const fallback = await findUserIdByEmail(data.owner.email);
         if (fallback) {
@@ -112,7 +125,10 @@ export const createTenantWithOwner = createServerFn({ method: "POST" })
       })
       .select("id")
       .single();
-    if (tErr || !tenant) throw new Error(tErr?.message ?? "Error creando tenant");
+    if (tErr || !tenant) {
+      console.error("createTenantWithOwner tenant insert error:", tErr);
+      throw new Error(tErr?.message ?? "Error creando tenant");
+    }
 
     // Link owner
     const { error: utErr } = await supabaseAdmin.from("user_tenants").insert({
@@ -122,7 +138,10 @@ export const createTenantWithOwner = createServerFn({ method: "POST" })
       is_active: true,
       invited_by: context.userId,
     });
-    if (utErr) throw new Error(utErr.message);
+    if (utErr) {
+      console.error("createTenantWithOwner user_tenants insert error:", utErr);
+      throw new Error(utErr.message);
+    }
 
     // Audit
     await supabaseAdmin.from("audit_log").insert({
@@ -168,7 +187,13 @@ const InviteUserSchema = z.object({
 
 export const inviteUserToTenant = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => InviteUserSchema.parse(input))
+  .inputValidator((input: unknown) => {
+    const unwrapped =
+      input && typeof input === "object" && "data" in (input as Record<string, unknown>)
+        ? (input as { data: unknown }).data
+        : input;
+    return InviteUserSchema.parse(unwrapped);
+  })
   .handler(async ({ data, context }) => {
     await assertSuperAdmin(context.userId);
 
