@@ -18,6 +18,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useImpersonatingTenantId } from "@/lib/impersonation";
 import { logAudit, slugify } from "@/lib/admin-utils";
 import {
+  getServerFunctionAuthHeaders,
+  getServerFunctionErrorMessage,
+} from "@/lib/server-function-client";
+import {
   TOTAL_STEPS,
   type TenantSettings,
   PAYMENT_METHODS,
@@ -29,7 +33,7 @@ import {
   PHONE_REGEX,
   URL_REGEX,
 } from "@/lib/onboarding";
-import { inviteTenantUser } from "@/utils/onboarding.functions";
+import { inviteTenantUser, saveOnboardingSettings } from "@/utils/onboarding.functions";
 
 export const Route = createFileRoute("/app/onboarding")({
   component: OnboardingWizard,
@@ -221,11 +225,11 @@ function OnboardingWizard() {
       ...patch,
       onboarding_step: nextStep,
     };
-    const { error } = await supabase
-      .from("tenants")
-      .update({ settings: merged as never })
-      .eq("id", tenant.id);
-    if (error) throw new Error(error.message);
+    const headers = await getServerFunctionAuthHeaders();
+    await saveOnboardingSettings({
+      data: { tenantId: tenant.id, patch, nextStep },
+      headers,
+    });
     setTenant({ ...tenant, settings: merged });
     await logAudit({
       tenantId: tenant.id,
@@ -403,11 +407,18 @@ function OnboardingWizard() {
           onboarding_completed_at: new Date().toISOString(),
           onboarding_step: TOTAL_STEPS - 1,
         };
-        const { error } = await supabase
-          .from("tenants")
-          .update({ settings: merged as never })
-          .eq("id", tenant.id);
-        if (error) throw new Error(error.message);
+        const headers = await getServerFunctionAuthHeaders();
+        await saveOnboardingSettings({
+          data: {
+            tenantId: tenant.id,
+            patch: {
+              onboarding_completed: true,
+              onboarding_completed_at: merged.onboarding_completed_at,
+            },
+            nextStep: TOTAL_STEPS - 1,
+          },
+          headers,
+        });
         await logAudit({
           tenantId: tenant.id,
           action: "onboarding.completed",
@@ -419,7 +430,7 @@ function OnboardingWizard() {
       }
       setStep((s) => Math.min(s + 1, TOTAL_STEPS - 1));
     } catch (e) {
-      setStepError(e instanceof Error ? e.message : "Error al guardar");
+      setStepError(getServerFunctionErrorMessage(e, "Error al guardar"));
     } finally {
       setSaving(false);
     }
