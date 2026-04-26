@@ -16,7 +16,7 @@ type ExtractedItem = {
   quantity: number;
   unit_price?: number | null;
   unit_cost?: number | null;
-  attributes?: Record<string, unknown>;
+  attributes?: Record<string, string | number | boolean | null>;
   notes?: string;
   product_id?: string | null;
   create_new?: boolean;
