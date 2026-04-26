@@ -14,6 +14,7 @@ import {
   type PaymentMethod,
 } from "@/utils/sales";
 import { formatCurrency, getTenantCurrency, type CurrencyCode } from "@/utils/currency";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 export const Route = createFileRoute("/app/ventas/nueva")({
   component: NewSalePage,
@@ -50,6 +51,7 @@ function NewSalePage() {
   const [searching, setSearching] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [discardOpen, setDiscardOpen] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -150,7 +152,15 @@ function NewSalePage() {
     setCart((prev) => prev.filter((p) => p.product_id !== id));
 
   const handleCancel = () => {
-    if (cart.length > 0 && !window.confirm("¿Descartar la venta en curso?")) return;
+    if (cart.length > 0) {
+      setDiscardOpen(true);
+      return;
+    }
+    sessionStorage.removeItem(CART_KEY);
+    void navigate({ to: "/app/ventas" });
+  };
+
+  const confirmDiscard = () => {
     sessionStorage.removeItem(CART_KEY);
     void navigate({ to: "/app/ventas" });
   };
