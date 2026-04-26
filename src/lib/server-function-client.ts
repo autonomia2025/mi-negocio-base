@@ -15,7 +15,7 @@ export async function getServerFunctionAuthHeaders(): Promise<HeadersInit> {
 }
 
 export function isSessionExpiredError(error: unknown) {
-  if (error instanceof Response) return error.status === 401;
+  if (error instanceof Response) return true;
 
   if (error && typeof error === "object") {
     const maybeStatus = (error as { status?: unknown }).status;
