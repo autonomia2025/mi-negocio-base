@@ -19,7 +19,9 @@ function Index() {
     }
     if (currentTenantId) {
       const role = currentMembership?.role;
-      if (role === "tenant_owner" || role === "gerente") {
+      if (role === "super_admin") {
+        void navigate({ to: "/admin" });
+      } else if (role === "tenant_owner" || role === "gerente") {
         void navigate({ to: "/app/dashboard" });
       } else if (role === "almacenista") {
         void navigate({ to: "/app/inventario" });
