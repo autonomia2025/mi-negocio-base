@@ -10,6 +10,10 @@ import {
   slugify,
 } from "@/lib/admin-utils";
 import { createTenantWithOwner } from "@/utils/admin.functions";
+import {
+  getServerFunctionAuthHeaders,
+  getServerFunctionErrorMessage,
+} from "@/lib/server-function-client";
 
 export const Route = createFileRoute("/admin/tenants/new")({
   component: NewTenantWizard,
@@ -72,6 +76,7 @@ function NewTenantWizard() {
     setSubmitting(true);
     setError(null);
     try {
+      const headers = await getServerFunctionAuthHeaders();
       const res = (await createTenantWithOwner({
         data: {
           name: name.trim(),
@@ -91,6 +96,7 @@ function NewTenantWizard() {
             password,
           },
         },
+        headers,
       })) as unknown;
       // TanStack server fns can return the payload directly, wrapped in { data }, or { result }
       const extractTenantId = (r: unknown): string | null => {
@@ -116,7 +122,7 @@ function NewTenantWizard() {
       }
       void navigate({ to: "/admin/tenants/$id", params: { id: tenantId } });
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error desconocido");
+      setError(getServerFunctionErrorMessage(e));
     } finally {
       setSubmitting(false);
     }
