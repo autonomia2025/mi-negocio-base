@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, Download, Printer, XCircle, RefreshCw, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { useImpersonatingTenantId } from "@/lib/impersonation";
 import { supabase } from "@/integrations/supabase/client";
@@ -147,6 +148,22 @@ function SaleDetailPage() {
     }
   }
 
+  async function handlePrintTicket() {
+    if (!sale) return;
+    setActionError(null);
+    try {
+      const url = await getSalePdfSignedUrl(sale.id);
+      if (!url) {
+        toast.error("PDF aún se está generando, intenta en unos segundos");
+        return;
+      }
+      const win = window.open(url, "_blank");
+      setTimeout(() => win?.print(), 1000);
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  }
+
   async function handleRegenerate() {
     if (!sale) return;
     setActionError(null);
@@ -277,6 +294,12 @@ function SaleDetailPage() {
           className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-sm hover:bg-accent"
         >
           <Download className="h-4 w-4" /> Descargar PDF
+        </button>
+        <button
+          onClick={() => void handlePrintTicket()}
+          className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-sm hover:bg-accent"
+        >
+          <Printer className="h-4 w-4" /> Imprimir ticket
         </button>
         <button
           onClick={() => window.print()}

@@ -14,6 +14,7 @@ import {
   type PaymentMethod,
 } from "@/utils/sales";
 import { formatCurrency, getTenantCurrency, type CurrencyCode } from "@/utils/currency";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 export const Route = createFileRoute("/app/ventas/nueva")({
   component: NewSalePage,
@@ -50,6 +51,7 @@ function NewSalePage() {
   const [searching, setSearching] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [discardOpen, setDiscardOpen] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -150,7 +152,15 @@ function NewSalePage() {
     setCart((prev) => prev.filter((p) => p.product_id !== id));
 
   const handleCancel = () => {
-    if (cart.length > 0 && !window.confirm("¿Descartar la venta en curso?")) return;
+    if (cart.length > 0) {
+      setDiscardOpen(true);
+      return;
+    }
+    sessionStorage.removeItem(CART_KEY);
+    void navigate({ to: "/app/ventas" });
+  };
+
+  const confirmDiscard = () => {
     sessionStorage.removeItem(CART_KEY);
     void navigate({ to: "/app/ventas" });
   };
@@ -286,11 +296,11 @@ function NewSalePage() {
                         <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
-                    <div className="mt-3 flex flex-wrap items-center gap-3">
-                      <div className="flex items-center gap-1">
+                     <div className="mt-3 flex flex-wrap items-center gap-3 overflow-hidden">
+                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => updateQty(item.product_id, Math.max(1, item.quantity - 1))}
-                          className="flex h-9 w-9 items-center justify-center rounded-md border border-border hover:bg-accent"
+                          className="flex h-11 w-11 items-center justify-center rounded-md border border-border hover:bg-accent sm:h-9 sm:w-9"
                         >
                           <Minus className="h-4 w-4" />
                         </button>
@@ -301,11 +311,11 @@ function NewSalePage() {
                           step={0.01}
                           value={item.quantity}
                           onChange={(e) => updateQty(item.product_id, Number(e.target.value))}
-                          className="h-9 w-16 rounded-md border border-border bg-background text-center text-sm tabular-nums outline-none focus:border-primary"
+                          className="h-11 w-16 rounded-md border border-border bg-background text-center text-sm tabular-nums outline-none focus:border-primary sm:h-9"
                         />
                         <button
                           onClick={() => updateQty(item.product_id, item.quantity + 1)}
-                          className="flex h-9 w-9 items-center justify-center rounded-md border border-border hover:bg-accent"
+                          className="flex h-11 w-11 items-center justify-center rounded-md border border-border hover:bg-accent sm:h-9 sm:w-9"
                         >
                           <Plus className="h-4 w-4" />
                         </button>
@@ -527,6 +537,16 @@ function NewSalePage() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={discardOpen}
+        onOpenChange={setDiscardOpen}
+        title="¿Descartar venta?"
+        message="Perderás los productos del carrito. Esta acción no se puede deshacer."
+        confirmLabel="Descartar"
+        confirmVariant="danger"
+        onConfirm={confirmDiscard}
+      />
     </div>
   );
 }

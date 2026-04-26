@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Search, X } from "lucide-react";
+import { Plus, Search, X, ShoppingBag } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useImpersonatingTenantId } from "@/lib/impersonation";
 import { supabase } from "@/integrations/supabase/client";
@@ -310,13 +310,8 @@ function SalesListPage() {
             )}
             {!loading && rows.length === 0 && (
               <tr>
-                <td colSpan={isManager ? 7 : 6} className="px-3 py-10 text-center text-muted-foreground">
-                  Aún no has registrado ventas.{" "}
-                  {showSell && (
-                    <Link to="/app/ventas/nueva" className="text-primary hover:underline">
-                      Registra la primera con + Nueva venta.
-                    </Link>
-                  )}
+                <td colSpan={isManager ? 7 : 6} className="px-3 py-12">
+                  <EmptySales showSell={showSell} />
                 </td>
               </tr>
             )}
@@ -336,8 +331,8 @@ function SalesListPage() {
       <div className="space-y-2 md:hidden">
         {loading && <div className="text-sm text-muted-foreground">Cargando…</div>}
         {!loading && rows.length === 0 && (
-          <div className="rounded-md border border-border bg-card p-6 text-center text-sm text-muted-foreground">
-            Aún no hay ventas.
+          <div className="rounded-md border border-border bg-card p-6">
+            <EmptySales showSell={showSell} />
           </div>
         )}
         {rows.map((r) => (
@@ -462,5 +457,29 @@ function SaleRowItem({
         )}
       </td>
     </tr>
+  );
+}
+
+function EmptySales({ showSell }: { showSell: boolean }) {
+  return (
+    <div className="flex flex-col items-center gap-3 p-6 text-center">
+      <ShoppingBag className="h-12 w-12 text-muted-foreground/60" />
+      <div>
+        <h3 className="text-base font-semibold text-foreground">
+          Aún no has registrado ventas
+        </h3>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Cuando registres una venta, aparecerá aquí
+        </p>
+      </div>
+      {showSell && (
+        <Link
+          to="/app/ventas/nueva"
+          className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
+        >
+          <Plus className="h-4 w-4" /> Nueva venta
+        </Link>
+      )}
+    </div>
   );
 }

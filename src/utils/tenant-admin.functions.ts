@@ -375,7 +375,11 @@ export const updateTenantSettings = createServerFn({ method: "POST" })
 
     const { error: uErr } = await supabaseAdmin
       .from("tenants")
-      .update(patch)
+      // The patch object is built dynamically from validated input; Supabase's
+      // generated update() type rejects a generic Record<string, unknown> even
+      // though the keys are guaranteed to be valid columns. Cast to `never` to
+      // satisfy the typecheck without rewriting the dynamic-merge logic.
+      .update(patch as never)
       .eq("id", data.tenantId);
     if (uErr) throw new Error(uErr.message);
 

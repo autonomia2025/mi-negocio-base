@@ -10,6 +10,7 @@ import {
   Trash2,
   ChevronLeft,
   ChevronRight,
+  Package,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useImpersonatingTenantId } from "@/lib/impersonation";
@@ -246,8 +247,8 @@ function ProductsListPage() {
               </tr>
             ) : rows.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-10 text-center text-muted-foreground">
-                  Aún no tienes productos. Agrega el primero para empezar.
+                <td colSpan={6} className="px-4 py-12">
+                  <EmptyProducts canEdit={canEdit} navigate={navigate} />
                 </td>
               </tr>
             ) : (
@@ -345,8 +346,8 @@ function ProductsListPage() {
             Cargando…
           </div>
         ) : rows.length === 0 ? (
-          <div className="rounded-md border border-border bg-card px-4 py-8 text-center text-sm text-muted-foreground">
-            Aún no tienes productos. Agrega el primero para empezar.
+          <div className="rounded-md border border-border bg-card p-6">
+            <EmptyProducts canEdit={canEdit} navigate={navigate} />
           </div>
         ) : (
           rows.map((p) => (
@@ -421,6 +422,36 @@ function ProductsListPage() {
             </div>
           </div>
         </div>
+      )}
+    </div>
+  );
+}
+
+function EmptyProducts({
+  canEdit,
+  navigate,
+}: {
+  canEdit: boolean;
+  navigate: ReturnType<typeof useNavigate>;
+}) {
+  return (
+    <div className="flex flex-col items-center gap-3 p-6 text-center">
+      <Package className="h-12 w-12 text-muted-foreground/60" />
+      <div>
+        <h3 className="text-base font-semibold text-foreground">
+          Aún no tienes productos en tu catálogo
+        </h3>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Crea tu primer producto para empezar a registrar inventario y ventas
+        </p>
+      </div>
+      {canEdit && (
+        <button
+          onClick={() => void navigate({ to: "/app/productos/nuevo" })}
+          className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
+        >
+          <Plus className="h-4 w-4" /> Crear primer producto
+        </button>
       )}
     </div>
   );
