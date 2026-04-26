@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -45,7 +45,6 @@ type Member = {
 };
 
 function EquipoPage() {
-  const navigate = useNavigate();
   const { currentTenantId, currentMembership, memberships, user } = useAuth();
   const impersonatingId = useImpersonatingTenantId();
   const isSuperAdmin = memberships.some((m) => m.role === "super_admin" && m.is_active);

@@ -22,6 +22,7 @@ import { Route as AppIngestaIaRouteImport } from './routes/app.ingesta-ia'
 import { Route as AppEquipoRouteImport } from './routes/app.equipo'
 import { Route as AppDashboardRouteImport } from './routes/app.dashboard'
 import { Route as AppConsultaRouteImport } from './routes/app.consulta'
+import { Route as AppConfiguracionRouteImport } from './routes/app.configuracion'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AppVentasIndexRouteImport } from './routes/app.ventas.index'
 import { Route as AppProductosIndexRouteImport } from './routes/app.productos.index'
@@ -102,6 +103,11 @@ const AppDashboardRoute = AppDashboardRouteImport.update({
 const AppConsultaRoute = AppConsultaRouteImport.update({
   id: '/consulta',
   path: '/consulta',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppConfiguracionRoute = AppConfiguracionRouteImport.update({
+  id: '/configuracion',
+  path: '/configuracion',
   getParentRoute: () => AppRoute,
 } as any)
 const AdminUsersRoute = AdminUsersRouteImport.update({
@@ -194,6 +200,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/select-tenant': typeof SelectTenantRoute
   '/admin/users': typeof AdminUsersRoute
+  '/app/configuracion': typeof AppConfiguracionRoute
   '/app/consulta': typeof AppConsultaRoute
   '/app/dashboard': typeof AppDashboardRoute
   '/app/equipo': typeof AppEquipoRoute
@@ -223,6 +230,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/select-tenant': typeof SelectTenantRoute
   '/admin/users': typeof AdminUsersRoute
+  '/app/configuracion': typeof AppConfiguracionRoute
   '/app/consulta': typeof AppConsultaRoute
   '/app/dashboard': typeof AppDashboardRoute
   '/app/equipo': typeof AppEquipoRoute
@@ -255,6 +263,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/select-tenant': typeof SelectTenantRoute
   '/admin/users': typeof AdminUsersRoute
+  '/app/configuracion': typeof AppConfiguracionRoute
   '/app/consulta': typeof AppConsultaRoute
   '/app/dashboard': typeof AppDashboardRoute
   '/app/equipo': typeof AppEquipoRoute
@@ -288,6 +297,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/select-tenant'
     | '/admin/users'
+    | '/app/configuracion'
     | '/app/consulta'
     | '/app/dashboard'
     | '/app/equipo'
@@ -317,6 +327,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/select-tenant'
     | '/admin/users'
+    | '/app/configuracion'
     | '/app/consulta'
     | '/app/dashboard'
     | '/app/equipo'
@@ -348,6 +359,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/select-tenant'
     | '/admin/users'
+    | '/app/configuracion'
     | '/app/consulta'
     | '/app/dashboard'
     | '/app/equipo'
@@ -472,6 +484,13 @@ declare module '@tanstack/react-router' {
       path: '/consulta'
       fullPath: '/app/consulta'
       preLoaderRoute: typeof AppConsultaRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/configuracion': {
+      id: '/app/configuracion'
+      path: '/configuracion'
+      fullPath: '/app/configuracion'
+      preLoaderRoute: typeof AppConfiguracionRouteImport
       parentRoute: typeof AppRoute
     }
     '/admin/users': {
@@ -608,6 +627,7 @@ const AdminRouteChildren: AdminRouteChildren = {
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface AppRouteChildren {
+  AppConfiguracionRoute: typeof AppConfiguracionRoute
   AppConsultaRoute: typeof AppConsultaRoute
   AppDashboardRoute: typeof AppDashboardRoute
   AppEquipoRoute: typeof AppEquipoRoute
@@ -629,6 +649,7 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppConfiguracionRoute: AppConfiguracionRoute,
   AppConsultaRoute: AppConsultaRoute,
   AppDashboardRoute: AppDashboardRoute,
   AppEquipoRoute: AppEquipoRoute,
