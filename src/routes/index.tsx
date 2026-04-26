@@ -21,6 +21,7 @@ function Index() {
       const role = currentMembership?.role;
       if (role === "super_admin") {
         void navigate({ to: "/admin" });
+        return;
       } else if (role === "tenant_owner" || role === "gerente") {
         void navigate({ to: "/app/dashboard" });
       } else if (role === "almacenista") {
