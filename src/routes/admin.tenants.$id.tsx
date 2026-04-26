@@ -17,6 +17,10 @@ import {
   setUserActiveInTenant,
 } from "@/utils/admin.functions";
 import { ImpersonateButton } from "@/components/admin/ImpersonateButton";
+import {
+  getServerFunctionAuthHeaders,
+  getServerFunctionErrorMessage,
+} from "@/lib/server-function-client";
 
 export const Route = createFileRoute("/admin/tenants/$id")({
   component: TenantDetail,
@@ -291,10 +295,11 @@ function UsersTab({ tenantId }: { tenantId: string }) {
 
   const load = async () => {
     try {
-      const r = await getTenantMembers({ data: { tenantId } });
+      const headers = await getServerFunctionAuthHeaders();
+      const r = await getTenantMembers({ data: { tenantId }, headers });
       setMembers(r.members as Member[]);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error");
+      setError(getServerFunctionErrorMessage(e, "Error"));
     }
   };
   useEffect(() => {
@@ -368,12 +373,14 @@ function UsersTab({ tenantId }: { tenantId: string }) {
                   <td className="px-4 py-3 text-right">
                     <button
                       onClick={async () => {
+                        const headers = await getServerFunctionAuthHeaders();
                         await setUserActiveInTenant({
                           data: {
                             userId: m.user_id,
                             tenantId,
                             isActive: !m.is_active,
                           },
+                          headers,
                         });
                         await load();
                       }}
@@ -422,6 +429,7 @@ function InviteModal({
     setBusy(true);
     setError(null);
     try {
+      const headers = await getServerFunctionAuthHeaders();
       await inviteUserToTenant({
         data: {
           tenantId,
@@ -430,10 +438,11 @@ function InviteModal({
           role: role as "tenant_owner" | "gerente" | "vendedor" | "almacenista" | "cajero" | "implementer",
           password,
         },
+        headers,
       });
       await onInvited();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error");
+      setError(getServerFunctionErrorMessage(e, "Error"));
     } finally {
       setBusy(false);
     }
