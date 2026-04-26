@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, Archive } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useImpersonatingTenantId } from "@/lib/impersonation";
 import {
@@ -192,7 +192,11 @@ function MovementsPage() {
               {loading ? (
                 <tr><td colSpan={7} className="px-3 py-8 text-center text-muted-foreground">Cargando…</td></tr>
               ) : rows.length === 0 ? (
-                <tr><td colSpan={7} className="px-3 py-8 text-center text-muted-foreground">Sin movimientos en este período</td></tr>
+                <tr>
+                  <td colSpan={7} className="px-3 py-12">
+                    <EmptyMovements />
+                  </td>
+                </tr>
               ) : (
                 rows.map((m) => {
                   const inbound = INBOUND_TYPES.has(m.movement_type);
@@ -231,7 +235,9 @@ function MovementsPage() {
           {loading ? (
             <div className="px-4 py-8 text-center text-sm text-muted-foreground">Cargando…</div>
           ) : rows.length === 0 ? (
-            <div className="px-4 py-8 text-center text-sm text-muted-foreground">Sin movimientos</div>
+            <div className="p-6">
+              <EmptyMovements />
+            </div>
           ) : (
             rows.map((m) => {
               const inbound = INBOUND_TYPES.has(m.movement_type);
@@ -316,6 +322,28 @@ function Row({ label, value }: { label: string; value: string }) {
     <div className="flex justify-between gap-3">
       <dt className="text-xs text-muted-foreground">{label}</dt>
       <dd className="text-right tabular-nums text-foreground">{value}</dd>
+    </div>
+  );
+}
+
+function EmptyMovements() {
+  return (
+    <div className="flex flex-col items-center gap-3 p-6 text-center">
+      <Archive className="h-12 w-12 text-muted-foreground/60" />
+      <div>
+        <h3 className="text-base font-semibold text-foreground">
+          Sin movimientos registrados
+        </h3>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Los movimientos de inventario aparecerán cuando registres entradas o salidas
+        </p>
+      </div>
+      <Link
+        to="/app/inventario/entrada"
+        className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground hover:bg-accent"
+      >
+        Registrar entrada
+      </Link>
     </div>
   );
 }
