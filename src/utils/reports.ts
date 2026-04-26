@@ -248,7 +248,7 @@ export async function fetchCashReconciliation(
     p_tenant_id: tenantId,
     p_from: range.from.toISOString(),
     p_to: range.to.toISOString(),
-    p_user_id: userId ?? null,
+    p_user_id: userId ?? undefined,
   });
   if (error) throw error;
   const obj = (data ?? {}) as Record<string, unknown>;
