@@ -1,6 +1,6 @@
 import { createFileRoute, Outlet, useNavigate, Link, useLocation } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Menu, X, ArrowLeftRight, Zap, Sparkles } from "lucide-react";
+import { Menu, X, ArrowLeftRight, Zap, Sparkles, BarChart3 } from "lucide-react";
 import { useAuth, ROLE_LABELS } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -14,6 +14,7 @@ export const Route = createFileRoute("/app")({
 });
 
 type MenuLink = {
+  kind?: "link";
   label: string;
   to:
     | "/app"
@@ -21,24 +22,34 @@ type MenuLink = {
     | "/app/inventario"
     | "/app/consulta"
     | "/app/ventas"
-    | "/app/ingesta-ia";
+    | "/app/ingesta-ia"
+    | "/app/dashboard"
+    | "/app/reportes/cortes"
+    | "/app/reportes/reorden";
   roles: string[];
   placeholder?: false;
   highlight?: boolean;
-  icon?: "zap" | "sparkles";
+  icon?: "zap" | "sparkles" | "chart";
 };
 type MenuPlaceholder = {
+  kind?: "link";
   label: string;
   placeholder: true;
   roles: string[];
 };
-type MenuItem = MenuLink | MenuPlaceholder;
+type MenuSection = {
+  kind: "section";
+  label: string;
+  roles: string[];
+};
+type MenuItem = MenuLink | MenuPlaceholder | MenuSection;
 
 const ALL_ROLES = ["tenant_owner", "gerente", "vendedor", "almacenista", "cajero"];
 const STAFF_ROLES = ["tenant_owner", "gerente", "almacenista"];
 const MANAGER_ROLES = ["tenant_owner", "gerente"];
 
 const MENU: MenuItem[] = [
+  { label: "Dashboard", to: "/app/dashboard", roles: MANAGER_ROLES, highlight: true, icon: "chart" },
   { label: "Consulta rápida", to: "/app/consulta", roles: ALL_ROLES, highlight: true, icon: "zap" },
   {
     label: "Ingesta IA",
@@ -47,7 +58,6 @@ const MENU: MenuItem[] = [
     highlight: true,
     icon: "sparkles",
   },
-  { label: "Dashboard", to: "/app", roles: MANAGER_ROLES },
   { label: "Catálogo", to: "/app/productos", roles: ALL_ROLES },
   { label: "Inventario", to: "/app/inventario", roles: STAFF_ROLES },
   {
@@ -55,6 +65,9 @@ const MENU: MenuItem[] = [
     to: "/app/ventas",
     roles: ["tenant_owner", "gerente", "vendedor", "cajero"],
   },
+  { kind: "section", label: "Reportes", roles: MANAGER_ROLES },
+  { label: "Cortes de caja", to: "/app/reportes/cortes", roles: MANAGER_ROLES },
+  { label: "Alertas de reorden", to: "/app/reportes/reorden", roles: MANAGER_ROLES },
 ];
 
 function AppLayout() {
@@ -224,7 +237,14 @@ function AppLayout() {
       </div>
       <nav className="flex-1 space-y-0.5 px-3 py-3">
         {visibleMenu.map((item) =>
-          item.placeholder ? (
+          "kind" in item && item.kind === "section" ? (
+            <div
+              key={`sec-${item.label}`}
+              className="px-3 pb-1 pt-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground"
+            >
+              {item.label}
+            </div>
+          ) : "placeholder" in item && item.placeholder ? (
             <div
               key={item.label}
               className="flex items-center justify-between rounded-md px-3 py-2 text-sm text-muted-foreground"
@@ -238,17 +258,19 @@ function AppLayout() {
           ) : (
             <Link
               key={item.label}
-              to={item.to}
-              activeOptions={{ exact: item.to === "/app" }}
+              to={(item as MenuLink).to}
+              activeOptions={{ exact: (item as MenuLink).to === "/app" }}
               activeProps={{ className: "bg-accent text-accent-foreground" }}
               className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm text-foreground hover:bg-accent ${
-                item.highlight ? "font-semibold" : ""
+                (item as MenuLink).highlight ? "font-semibold" : ""
               }`}
               onClick={() => setSidebarOpen(false)}
             >
-              {item.highlight && item.icon === "sparkles" ? (
+              {(item as MenuLink).highlight && (item as MenuLink).icon === "sparkles" ? (
                 <Sparkles className="h-3.5 w-3.5 text-primary" aria-hidden />
-              ) : item.highlight ? (
+              ) : (item as MenuLink).highlight && (item as MenuLink).icon === "chart" ? (
+                <BarChart3 className="h-3.5 w-3.5 text-primary" aria-hidden />
+              ) : (item as MenuLink).highlight ? (
                 <Zap className="h-3.5 w-3.5 text-primary" aria-hidden />
               ) : null}
               {item.label}
