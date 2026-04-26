@@ -16,6 +16,7 @@ export type TenantMembership = {
     id: string;
     name: string;
     slug: string;
+    is_system?: boolean;
   };
 };
 
@@ -47,7 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loadMemberships = async (uid: string) => {
     const { data, error } = await supabase
       .from("user_tenants")
-      .select("tenant_id, role, is_active, tenants(id, name, slug)")
+      .select("tenant_id, role, is_active, tenants(id, name, slug, is_system)")
       .eq("user_id", uid)
       .eq("is_active", true);
     if (error) {

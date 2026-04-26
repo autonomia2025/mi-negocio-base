@@ -40,13 +40,15 @@ function SelectTenantPage() {
           </button>
         </div>
 
-        {memberships.length === 0 ? (
+        {(() => {
+          const visible = memberships.filter((m) => !m.tenants?.is_system);
+          return visible.length === 0 ? (
           <div className="rounded-lg border border-border bg-card p-6 text-sm text-muted-foreground">
             No perteneces a ninguna empresa todavía.
           </div>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
-            {memberships.map((m) => (
+            {visible.map((m) => (
               <button
                 key={m.tenant_id}
                 onClick={() => onSelect(m.tenant_id)}
@@ -61,7 +63,8 @@ function SelectTenantPage() {
               </button>
             ))}
           </div>
-        )}
+          );
+        })()}
       </div>
     </div>
   );

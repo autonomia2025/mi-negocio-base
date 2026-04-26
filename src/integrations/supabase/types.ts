@@ -504,6 +504,7 @@ export type Database = {
           business_type: string | null
           created_at: string
           id: string
+          is_system: boolean
           name: string
           settings: Json
           slug: string
@@ -519,6 +520,7 @@ export type Database = {
           business_type?: string | null
           created_at?: string
           id?: string
+          is_system?: boolean
           name: string
           settings?: Json
           slug: string
@@ -534,6 +536,7 @@ export type Database = {
           business_type?: string | null
           created_at?: string
           id?: string
+          is_system?: boolean
           name?: string
           settings?: Json
           slug?: string
