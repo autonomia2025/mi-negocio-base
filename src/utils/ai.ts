@@ -25,7 +25,7 @@ export type ExtractedItem = {
   quantity: number;
   unit_price?: number | null;
   unit_cost?: number | null;
-  attributes?: Record<string, unknown>;
+  attributes?: Record<string, string | number | boolean | null>;
   notes?: string;
   /** Resolved during confirmation UI (not from AI). */
   product_id?: string | null;
@@ -109,9 +109,10 @@ export async function extractFromText(
   intentHint?: Intent,
 ): Promise<{ ingestionId: string; extracted: ExtractedData }> {
   const { extractFromTextFn } = await import("@/utils/ai.functions");
-  return extractFromTextFn({
+  const r = await extractFromTextFn({
     data: { tenantId, text, intentHint: intentHint ?? null },
   });
+  return r as { ingestionId: string; extracted: ExtractedData };
 }
 
 export async function extractFromImage(
@@ -120,9 +121,10 @@ export async function extractFromImage(
 ): Promise<{ ingestionId: string; extracted: ExtractedData; imagePath: string }> {
   const { extractFromImageFn } = await import("@/utils/ai.functions");
   const base64 = await fileToBase64(file);
-  return extractFromImageFn({
+  const r = await extractFromImageFn({
     data: { tenantId, imageBase64: base64, mimeType: file.type || "image/jpeg" },
   });
+  return r as { ingestionId: string; extracted: ExtractedData; imagePath: string };
 }
 
 export async function confirmIngestion(
@@ -131,7 +133,8 @@ export async function confirmIngestion(
   action: "confirm" | "discard",
 ): Promise<{ ok: true; references: string[] }> {
   const { confirmIngestionFn } = await import("@/utils/ai.functions");
-  return confirmIngestionFn({ data: { ingestionId, finalData, action } });
+  const r = await confirmIngestionFn({ data: { ingestionId, finalData, action } });
+  return r as { ok: true; references: string[] };
 }
 
 export async function discardIngestion(ingestionId: string): Promise<void> {

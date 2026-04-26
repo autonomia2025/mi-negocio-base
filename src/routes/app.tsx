@@ -1,6 +1,6 @@
 import { createFileRoute, Outlet, useNavigate, Link, useLocation } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Menu, X, ArrowLeftRight, Zap } from "lucide-react";
+import { Menu, X, ArrowLeftRight, Zap, Sparkles } from "lucide-react";
 import { useAuth, ROLE_LABELS } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -15,10 +15,17 @@ export const Route = createFileRoute("/app")({
 
 type MenuLink = {
   label: string;
-  to: "/app" | "/app/productos" | "/app/inventario" | "/app/consulta" | "/app/ventas";
+  to:
+    | "/app"
+    | "/app/productos"
+    | "/app/inventario"
+    | "/app/consulta"
+    | "/app/ventas"
+    | "/app/ingesta-ia";
   roles: string[];
   placeholder?: false;
   highlight?: boolean;
+  icon?: "zap" | "sparkles";
 };
 type MenuPlaceholder = {
   label: string;
@@ -32,7 +39,14 @@ const STAFF_ROLES = ["tenant_owner", "gerente", "almacenista"];
 const MANAGER_ROLES = ["tenant_owner", "gerente"];
 
 const MENU: MenuItem[] = [
-  { label: "Consulta rápida", to: "/app/consulta", roles: ALL_ROLES, highlight: true },
+  { label: "Consulta rápida", to: "/app/consulta", roles: ALL_ROLES, highlight: true, icon: "zap" },
+  {
+    label: "Ingesta IA",
+    to: "/app/ingesta-ia",
+    roles: ALL_ROLES,
+    highlight: true,
+    icon: "sparkles",
+  },
   { label: "Dashboard", to: "/app", roles: MANAGER_ROLES },
   { label: "Catálogo", to: "/app/productos", roles: ALL_ROLES },
   { label: "Inventario", to: "/app/inventario", roles: STAFF_ROLES },
@@ -232,9 +246,11 @@ function AppLayout() {
               }`}
               onClick={() => setSidebarOpen(false)}
             >
-              {item.highlight && (
+              {item.highlight && item.icon === "sparkles" ? (
+                <Sparkles className="h-3.5 w-3.5 text-primary" aria-hidden />
+              ) : item.highlight ? (
                 <Zap className="h-3.5 w-3.5 text-primary" aria-hidden />
-              )}
+              ) : null}
               {item.label}
             </Link>
           ),

@@ -505,22 +505,122 @@ function InviteModal({
 }
 
 function AITab({ tenant }: { tenant: Tenant }) {
-  const pct =
-    tenant.ai_ops_limit > 0
-      ? Math.min(100, Math.round((tenant.ai_ops_used / tenant.ai_ops_limit) * 100))
-      : 0;
+  const [aiQuota, setAiQuota] = useState<{
+    limit_monthly: number;
+    used_current_month: number;
+    reset_date: string;
+  } | null>(null);
+  const [editLimit, setEditLimit] = useState<number>(0);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+  const [ingestions, setIngestions] = useState<
+    Array<{
+      id: string;
+      created_at: string;
+      mode: string;
+      intent: string;
+      status: string;
+      cost_usd: number | null;
+      user_id: string;
+    }>
+  >([]);
+
+  const loadQuota = async () => {
+    const { data } = await supabase
+      .from("tenants")
+      .select("settings")
+      .eq("id", tenant.id)
+      .maybeSingle();
+    const settings = (data?.settings ?? {}) as { ai?: { limit_monthly?: number; used_current_month?: number; reset_date?: string } };
+    const ai = settings.ai ?? {};
+    const q = {
+      limit_monthly: Number(ai.limit_monthly ?? 500),
+      used_current_month: Number(ai.used_current_month ?? 0),
+      reset_date: String(ai.reset_date ?? ""),
+    };
+    setAiQuota(q);
+    setEditLimit(q.limit_monthly);
+  };
+
+  useEffect(() => {
+    void loadQuota();
+    void supabase
+      .from("ai_ingestions")
+      .select("id, created_at, mode, intent, status, cost_usd, user_id")
+      .eq("tenant_id", tenant.id)
+      .order("created_at", { ascending: false })
+      .limit(10)
+      .then(({ data }) => setIngestions((data ?? []) as never));
+  }, [tenant.id]);
+
+  const saveLimit = async () => {
+    if (!aiQuota) return;
+    setBusy(true);
+    setMsg(null);
+    const newAi = {
+      limit_monthly: editLimit,
+      used_current_month: aiQuota.used_current_month,
+      reset_date: aiQuota.reset_date,
+    };
+    // Read settings, merge ai, write back
+    const { data: cur } = await supabase
+      .from("tenants")
+      .select("settings")
+      .eq("id", tenant.id)
+      .maybeSingle();
+    const curSettings = (cur?.settings ?? {}) as Record<string, unknown>;
+    const settings = { ...curSettings, ai: newAi } as never;
+    const { error } = await supabase
+      .from("tenants")
+      .update({ settings })
+      .eq("id", tenant.id);
+    setBusy(false);
+    if (error) {
+      setMsg(error.message);
+      return;
+    }
+    await logAudit({
+      tenantId: tenant.id,
+      action: "tenant.ai_monthly_limit_updated",
+      entityType: "tenant",
+      entityId: tenant.id,
+      changes: { from: aiQuota.limit_monthly, to: editLimit },
+    });
+    setMsg("Límite actualizado");
+    await loadQuota();
+  };
+
+  const pct = aiQuota && aiQuota.limit_monthly > 0
+    ? Math.min(100, Math.round((aiQuota.used_current_month / aiQuota.limit_monthly) * 100))
+    : 0;
+
+  const modeIcon: Record<string, string> = { photo: "📸", audio: "🎤", text: "💬" };
+  const intentIcon: Record<string, string> = {
+    inventory_in: "📦",
+    inventory_out: "📤",
+    sale: "💰",
+    catalog: "➕",
+    unknown: "❓",
+  };
+  const statusTone: Record<string, string> = {
+    pending: "border-amber-300 bg-amber-50 text-amber-800",
+    confirmed: "border-emerald-300 bg-emerald-50 text-emerald-800",
+    discarded: "border-slate-300 bg-slate-100 text-slate-700",
+    failed: "border-rose-300 bg-rose-50 text-rose-800",
+  };
+
   return (
     <div className="space-y-4">
       <div className="rounded-lg border border-border bg-card p-6">
         <div className="flex items-end justify-between">
           <div>
             <div className="text-xs uppercase tracking-wide text-muted-foreground">
-              Consumo del ciclo
+              Consumo de IA este mes
             </div>
             <div className="mt-1 text-2xl font-semibold text-foreground">
-              {tenant.ai_ops_used.toLocaleString("es-MX")}{" "}
+              {aiQuota?.used_current_month.toLocaleString("es-MX") ?? "—"}{" "}
               <span className="text-base font-normal text-muted-foreground">
-                / {tenant.ai_ops_limit.toLocaleString("es-MX")}
+                / {aiQuota?.limit_monthly.toLocaleString("es-MX") ?? "—"}
               </span>
             </div>
           </div>
@@ -532,15 +632,85 @@ function AITab({ tenant }: { tenant: Tenant }) {
             style={{ width: `${pct}%` }}
           />
         </div>
-        <div className="mt-3 text-xs text-muted-foreground">
-          Ciclo iniciado el {new Date(tenant.ai_cycle_start).toLocaleDateString("es-MX")}
-        </div>
+        {aiQuota?.reset_date && (
+          <div className="mt-3 text-xs text-muted-foreground">
+            Próximo reset: {aiQuota.reset_date}
+          </div>
+        )}
       </div>
 
-      <div className="rounded-lg border border-dashed border-border bg-card p-8 text-center">
-        <div className="text-sm font-medium text-foreground">Histórico de uso</div>
-        <div className="mt-1 text-xs text-muted-foreground">
-          Gráfico disponible cuando se conecte el módulo de IA (fase 8).
+      <div className="space-y-3 rounded-lg border border-border bg-card p-6">
+        <h3 className="text-sm font-medium text-foreground">Configuración IA</h3>
+        <Row label="Límite mensual de operaciones">
+          <div className="flex gap-2">
+            <input
+              type="number"
+              min={0}
+              value={editLimit}
+              onChange={(e) => setEditLimit(parseInt(e.target.value || "0", 10))}
+              className="w-40 rounded-md border border-input bg-background px-3 py-2 text-sm"
+            />
+            <button
+              disabled={busy}
+              onClick={() => void saveLimit()}
+              className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
+            >
+              Guardar
+            </button>
+          </div>
+        </Row>
+        {msg && <div className="text-sm text-muted-foreground">{msg}</div>}
+      </div>
+
+      <div className="space-y-2">
+        <h3 className="text-sm font-medium text-foreground">Últimas 10 ingestas</h3>
+        <div className="overflow-x-auto rounded-lg border border-border bg-card">
+          <table className="w-full text-sm">
+            <thead className="border-b border-border bg-muted/30 text-left text-xs uppercase tracking-wide text-muted-foreground">
+              <tr>
+                <th className="px-4 py-2.5 font-medium">Fecha</th>
+                <th className="px-4 py-2.5 font-medium">Modo</th>
+                <th className="px-4 py-2.5 font-medium">Intent</th>
+                <th className="px-4 py-2.5 font-medium">Status</th>
+                <th className="px-4 py-2.5 font-medium">Costo (USD)</th>
+                <th className="px-4 py-2.5 font-medium">Usuario</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {ingestions.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-4 py-6 text-center text-muted-foreground">
+                    Sin ingestas todavía.
+                  </td>
+                </tr>
+              ) : (
+                ingestions.map((r) => (
+                  <tr key={r.id}>
+                    <td className="whitespace-nowrap px-4 py-2.5 text-xs text-muted-foreground">
+                      {new Date(r.created_at).toLocaleString("es-MX")}
+                    </td>
+                    <td className="px-4 py-2.5 text-foreground">
+                      {modeIcon[r.mode] ?? "?"} {r.mode}
+                    </td>
+                    <td className="px-4 py-2.5 text-foreground">
+                      {intentIcon[r.intent] ?? ""} {r.intent}
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <span className={`inline-block rounded-full border px-2 py-0.5 text-xs ${statusTone[r.status] ?? ""}`}>
+                        {r.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2.5 tabular-nums text-foreground">
+                      ${(r.cost_usd ?? 0).toFixed(4)}
+                    </td>
+                    <td className="px-4 py-2.5 font-mono text-xs text-muted-foreground">
+                      {r.user_id.slice(0, 8)}…
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

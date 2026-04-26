@@ -18,6 +18,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AppOnboardingRouteImport } from './routes/app.onboarding'
+import { Route as AppIngestaIaRouteImport } from './routes/app.ingesta-ia'
 import { Route as AppConsultaRouteImport } from './routes/app.consulta'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AppVentasIndexRouteImport } from './routes/app.ventas.index'
@@ -77,6 +78,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
 const AppOnboardingRoute = AppOnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppIngestaIaRoute = AppIngestaIaRouteImport.update({
+  id: '/ingesta-ia',
+  path: '/ingesta-ia',
   getParentRoute: () => AppRoute,
 } as any)
 const AppConsultaRoute = AppConsultaRouteImport.update({
@@ -165,6 +171,7 @@ export interface FileRoutesByFullPath {
   '/select-tenant': typeof SelectTenantRoute
   '/admin/users': typeof AdminUsersRoute
   '/app/consulta': typeof AppConsultaRoute
+  '/app/ingesta-ia': typeof AppIngestaIaRoute
   '/app/onboarding': typeof AppOnboardingRoute
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
@@ -189,6 +196,7 @@ export interface FileRoutesByTo {
   '/select-tenant': typeof SelectTenantRoute
   '/admin/users': typeof AdminUsersRoute
   '/app/consulta': typeof AppConsultaRoute
+  '/app/ingesta-ia': typeof AppIngestaIaRoute
   '/app/onboarding': typeof AppOnboardingRoute
   '/admin': typeof AdminIndexRoute
   '/app': typeof AppIndexRoute
@@ -216,6 +224,7 @@ export interface FileRoutesById {
   '/select-tenant': typeof SelectTenantRoute
   '/admin/users': typeof AdminUsersRoute
   '/app/consulta': typeof AppConsultaRoute
+  '/app/ingesta-ia': typeof AppIngestaIaRoute
   '/app/onboarding': typeof AppOnboardingRoute
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
@@ -244,6 +253,7 @@ export interface FileRouteTypes {
     | '/select-tenant'
     | '/admin/users'
     | '/app/consulta'
+    | '/app/ingesta-ia'
     | '/app/onboarding'
     | '/admin/'
     | '/app/'
@@ -268,6 +278,7 @@ export interface FileRouteTypes {
     | '/select-tenant'
     | '/admin/users'
     | '/app/consulta'
+    | '/app/ingesta-ia'
     | '/app/onboarding'
     | '/admin'
     | '/app'
@@ -294,6 +305,7 @@ export interface FileRouteTypes {
     | '/select-tenant'
     | '/admin/users'
     | '/app/consulta'
+    | '/app/ingesta-ia'
     | '/app/onboarding'
     | '/admin/'
     | '/app/'
@@ -384,6 +396,13 @@ declare module '@tanstack/react-router' {
       path: '/onboarding'
       fullPath: '/app/onboarding'
       preLoaderRoute: typeof AppOnboardingRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/ingesta-ia': {
+      id: '/app/ingesta-ia'
+      path: '/ingesta-ia'
+      fullPath: '/app/ingesta-ia'
+      preLoaderRoute: typeof AppIngestaIaRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/consulta': {
@@ -514,6 +533,7 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface AppRouteChildren {
   AppConsultaRoute: typeof AppConsultaRoute
+  AppIngestaIaRoute: typeof AppIngestaIaRoute
   AppOnboardingRoute: typeof AppOnboardingRoute
   AppIndexRoute: typeof AppIndexRoute
   AppInventarioEntradaRoute: typeof AppInventarioEntradaRoute
@@ -530,6 +550,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppConsultaRoute: AppConsultaRoute,
+  AppIngestaIaRoute: AppIngestaIaRoute,
   AppOnboardingRoute: AppOnboardingRoute,
   AppIndexRoute: AppIndexRoute,
   AppInventarioEntradaRoute: AppInventarioEntradaRoute,
