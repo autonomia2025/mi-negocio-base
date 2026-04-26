@@ -18,6 +18,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useImpersonatingTenantId } from "@/lib/impersonation";
 import { logAudit, slugify } from "@/lib/admin-utils";
 import {
+  getServerFunctionAuthHeaders,
+  getServerFunctionErrorMessage,
+} from "@/lib/server-function-client";
+import {
   TOTAL_STEPS,
   type TenantSettings,
   PAYMENT_METHODS,
@@ -29,7 +33,7 @@ import {
   PHONE_REGEX,
   URL_REGEX,
 } from "@/lib/onboarding";
-import { inviteTenantUser } from "@/utils/onboarding.functions";
+import { inviteTenantUser, saveOnboardingSettings } from "@/utils/onboarding.functions";
 
 export const Route = createFileRoute("/app/onboarding")({
   component: OnboardingWizard,
