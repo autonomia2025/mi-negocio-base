@@ -173,27 +173,29 @@ export const inviteUserToTenant = createServerFn({ method: "POST" })
     await assertSuperAdmin(context.userId);
 
     let userId: string | null = null;
-    const { data: created, error: cErr } =
-      await supabaseAdmin.auth.admin.createUser({
-        email: data.email,
-        password: data.password,
-        email_confirm: true,
-        user_metadata: { full_name: data.full_name },
-      });
-    if (cErr) {
-      const { data: list } = await supabaseAdmin.auth.admin.listUsers({
-        page: 1,
-        perPage: 200,
-      });
-      const found = list?.users.find(
-        (u) => u.email?.toLowerCase() === data.email.toLowerCase(),
-      );
-      if (!found) throw new Error(cErr.message);
-      userId = found.id;
-    } else {
-      userId = created.user?.id ?? null;
+    userId = await findUserIdByEmail(data.email);
+    if (!userId) {
+      const { data: created, error: cErr } =
+        await supabaseAdmin.auth.admin.createUser({
+          email: data.email,
+          password: data.password,
+          email_confirm: true,
+          user_metadata: { full_name: data.full_name },
+        });
+      if (cErr) {
+        const fallback = await findUserIdByEmail(data.email);
+        if (fallback) {
+          userId = fallback;
+        } else {
+          throw new Error(cErr.message);
+        }
+      } else {
+        userId = created.user?.id ?? null;
+      }
     }
-    if (!userId) throw new Error("No se obtuvo el id del usuario");
+    if (!userId || typeof userId !== "string") {
+      throw new Error("No se pudo obtener el id del usuario");
+    }
 
     const { error: utErr } = await supabaseAdmin
       .from("user_tenants")
