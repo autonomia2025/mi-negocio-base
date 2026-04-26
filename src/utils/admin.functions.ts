@@ -15,6 +15,21 @@ async function assertSuperAdmin(userId: string) {
   if (!data || data.length === 0) throw new Error("No autorizado");
 }
 
+async function findUserIdByEmail(email: string): Promise<string | null> {
+  const target = email.toLowerCase();
+  for (let page = 1; page <= 10; page++) {
+    const { data, error } = await supabaseAdmin.auth.admin.listUsers({
+      page,
+      perPage: 200,
+    });
+    if (error) throw new Error(error.message);
+    const found = data.users.find((u) => u.email?.toLowerCase() === target);
+    if (found) return found.id;
+    if (data.users.length < 200) return null;
+  }
+  return null;
+}
+
 const CreateTenantSchema = z.object({
   name: z.string().trim().min(2).max(120),
   slug: z
