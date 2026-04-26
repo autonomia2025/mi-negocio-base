@@ -568,7 +568,8 @@ function AITab({ tenant }: { tenant: Tenant }) {
       .select("settings")
       .eq("id", tenant.id)
       .maybeSingle();
-    const settings = { ...(cur?.settings ?? {}), ai: newAi } as never;
+    const curSettings = (cur?.settings ?? {}) as Record<string, unknown>;
+    const settings = { ...curSettings, ai: newAi } as never;
     const { error } = await supabase
       .from("tenants")
       .update({ settings })
