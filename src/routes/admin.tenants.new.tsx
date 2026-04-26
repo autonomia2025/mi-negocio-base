@@ -92,14 +92,22 @@ function NewTenantWizard() {
           },
         },
       })) as unknown;
-      // TanStack server fns can return either the payload directly or { result: payload }
-      const payload =
-        res && typeof res === "object" && "tenantId" in (res as Record<string, unknown>)
-          ? (res as { tenantId?: unknown })
-          : res && typeof res === "object" && "result" in (res as Record<string, unknown>)
-            ? ((res as { result: { tenantId?: unknown } }).result ?? {})
-            : {};
-      const tenantId = (payload as { tenantId?: unknown }).tenantId;
+      // TanStack server fns can return the payload directly, wrapped in { data }, or { result }
+      const extractTenantId = (r: unknown): string | null => {
+        if (!r || typeof r !== "object") return null;
+        const obj = r as Record<string, unknown>;
+        if (typeof obj.tenantId === "string") return obj.tenantId;
+        if (obj.data && typeof obj.data === "object") {
+          const inner = (obj.data as Record<string, unknown>).tenantId;
+          if (typeof inner === "string") return inner;
+        }
+        if (obj.result && typeof obj.result === "object") {
+          const inner = (obj.result as Record<string, unknown>).tenantId;
+          if (typeof inner === "string") return inner;
+        }
+        return null;
+      };
+      const tenantId = extractTenantId(res);
       if (!tenantId || typeof tenantId !== "string") {
         console.error("createTenantWithOwner unexpected response:", res);
         throw new Error(
