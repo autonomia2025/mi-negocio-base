@@ -92,6 +92,9 @@ function NewTenantWizard() {
           },
         },
       });
+      if (!res?.tenantId || typeof res.tenantId !== "string") {
+        throw new Error("La creación no devolvió un id de tenant válido");
+      }
       void navigate({ to: "/admin/tenants/$id", params: { id: res.tenantId } });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error desconocido");

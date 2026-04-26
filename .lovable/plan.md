@@ -1,81 +1,97 @@
-# Plan: Ocultar tenant de sistema y hardening del panel /admin/tenants
+# Plan: Resolver `invalid input syntax for type uuid: "undefined"` al crear tenant
 
-Aplica el plan que describiste. Verifiqué la DB: el slug del tenant de sistema es `mexintli-hq` (ID `28c31dde-b4ef-4e15-9de8-27994e2fb70d`), que coincide con el ID del crash en consola — confirmando el diagnóstico.
+## Diagnóstico confirmado
 
-## 1. Migración SQL — agregar `is_system` a `tenants`
+Hay **tres causas** combinadas que producen los errores que viste:
 
-```sql
-ALTER TABLE public.tenants
-  ADD COLUMN IF NOT EXISTS is_system boolean NOT NULL DEFAULT false;
+1. **Sesión expirada (401s en consola)** — Estás actualmente en `/login`. Las llamadas a server functions (`/_serverFn/...`) devuelven 401 porque `requireSupabaseAuth` rechaza el token. Esto sólo se arregla **re-logueándote**, no es un bug de código.
 
-CREATE INDEX IF NOT EXISTS idx_tenants_is_system
-  ON public.tenants(is_system) WHERE is_system = true;
+2. **Lógica frágil en `createTenantWithOwner`** (`src/utils/admin.functions.ts`) — Si `supabaseAdmin.auth.admin.createUser` falla por **cualquier motivo distinto** a "email duplicado" (p. ej. password débil, rate limit, validación de Supabase Auth), el código entra al bloque `else` con `ownerUserId = null`, pero el `if (!ownerUserId)` lanza correctamente. El problema es que el `msg.includes("already")` es brittle: si Supabase cambia el wording, o si el email **sí** está duplicado pero en una página posterior del `listUsers` (limit 200), `ownerUserId` queda como `null`/`undefined` y el insert a `tenants` o `user_tenants` revienta con UUID inválido.
 
-UPDATE public.tenants
-  SET is_system = true
-  WHERE slug = 'mexintli-hq';
-```
+3. **Navegación ciega en el wizard** (`src/routes/admin.tenants.new.tsx` línea 95) — Al terminar `submit()`, navega a `/admin/tenants/$id` con `res.tenantId` sin validar que exista. Si la server function devuelve un objeto malformado (p. ej. por el bug #2), TanStack Router pasa `undefined` como param, y el detalle hace `.eq("id", "undefined")` → 400 de Supabase REST.
 
-## 2. `src/routes/admin.tenants.index.tsx` — hardening
+## Cambios
 
-- **Filtrar `is_system`** en la query `reload()`: añadir `.eq("is_system", false)`.
-- **Render defensivo del owner**: reemplazar `owners[t.id]?.[0]?.email ?? "—"` por
-  ```ts
-  const ownerList = owners && typeof owners === "object" ? owners[t.id] : null;
-  const ownerEmail = ownerList?.[0]?.email ?? "—";
-  ```
-- **Estado `ownersError`** y banner ámbar no bloqueante arriba de la tabla cuando la carga de owners falla; el `.catch` setea `setOwners({})` y guarda el mensaje.
+### 1. `src/utils/admin.functions.ts` — lookup-first y validaciones
 
-## 3. `src/routes/select-tenant.tsx` — filtrar system tenants
-
-Filtrar `memberships` donde `m.tenants?.is_system === false` (o no esté marcado) antes de renderizar las opciones, para que el super_admin no vea MEXINTLI HQ como opción de "entrar". Confirmé que el componente ya hace `m.tenants.name`, así que `is_system` está disponible vía la relación. Si el tipo no lo expone aún, hacer cast defensivo.
-
-> Nota: requiere que `useAuth()` traiga `is_system` en el select de memberships. Reviso `src/lib/auth-context.tsx` durante la implementación y, si falta, lo agrego al select de tenants.
-
-## 4. `src/routes/index.tsx` — routing super_admin
-
-Ya está aplicado el bloque `if (role === "super_admin") { void navigate({ to: "/admin" }); }`. Solo añadir `return;` después del navigate para evitar fall-through.
-
-## 5. `src/utils/admin.functions.ts` — `getTenantOwners` no lanza al cliente
-
-Envolver el cuerpo (después de `assertSuperAdmin`) en try/catch:
+Añadir helper paginado:
 
 ```ts
-.handler(async ({ context }) => {
-  await assertSuperAdmin(context.userId);
-  try {
-    // ... lógica actual ...
-    return { ownersByTenant };
-  } catch (e) {
-    console.error("getTenantOwners failed:", e);
-    return { ownersByTenant: {}, warning: "No se pudieron cargar los dueños" };
+async function findUserIdByEmail(email: string): Promise<string | null> {
+  const target = email.toLowerCase();
+  for (let page = 1; page <= 10; page++) {
+    const { data, error } = await supabaseAdmin.auth.admin.listUsers({
+      page, perPage: 200,
+    });
+    if (error) throw new Error(error.message);
+    const found = data.users.find((u) => u.email?.toLowerCase() === target);
+    if (found) return found.id;
+    if (data.users.length < 200) return null;
   }
-});
+  return null;
+}
 ```
 
-`assertSuperAdmin` sigue lanzando (eso es correcto: 401/403 son intencionales).
+Refactorizar `createTenantWithOwner`:
+- **Primero** buscar si el email ya existe con `findUserIdByEmail`.
+- Si existe → usar ese `userId` (no intentar crear).
+- Si no existe → crear con `createUser`. Si falla, propagar el mensaje real de Supabase (no asumir "duplicado").
+- Validar explícitamente `if (!ownerUserId || typeof ownerUserId !== "string") throw new Error("No se pudo obtener el id del usuario dueño")` **antes** de cualquier insert.
+- Mismo refactor en `inviteUserToTenant`.
 
-## 6. `src/routes/admin.tsx` — indicador en sidebar
+### 2. `src/routes/admin.tenants.new.tsx` — navegación defensiva
 
-En el footer del sidebar, justo arriba del `<div>` con `user?.email`:
+Reemplazar el bloque `submit` (líneas ~94-95):
 
-```tsx
-<div className="px-3 py-1 text-[10px] uppercase tracking-wide text-muted-foreground">
-  Super admin · MEXINTLI HQ
-</div>
+```ts
+const res = await createTenantWithOwner({ data: { ... } });
+if (!res?.tenantId) {
+  throw new Error("La creación no devolvió un id de tenant válido");
+}
+void navigate({ to: "/admin/tenants/$id", params: { id: res.tenantId } });
 ```
+
+Esto evita el `id=eq.undefined` aunque haya un bug aguas arriba.
+
+### 3. `src/routes/admin.tenants.$id.tsx` — guard de param
+
+Al inicio de `TenantDetail`, después de `const { id } = Route.useParams()`:
+
+```ts
+if (!id || id === "undefined") {
+  return (
+    <div className="space-y-3">
+      <Link to="/admin/tenants" className="text-xs text-muted-foreground hover:text-foreground">
+        ← Volver a tenants
+      </Link>
+      <div className="rounded-md border border-destructive/30 bg-destructive/5 px-4 py-6 text-sm text-destructive">
+        ID de tenant inválido. Vuelve al listado y selecciona un tenant válido.
+      </div>
+    </div>
+  );
+}
+```
+
+Esto previene el 400 a `/rest/v1/tenants?id=eq.undefined` aunque alguien navegue manual a la URL rota.
+
+### 4. Mejor feedback en el wizard
+
+El `catch` en `submit()` ya muestra `e.message`. Con el fix #1, ahora el mensaje será real (p. ej. "Password should be at least 6 characters") en vez de un crash silencioso.
 
 ## NO se hace
 
-- UI para gestión de super_admins (manual con SQL)
-- Cambios a `/admin/tenants/$id` (sigue accesible por URL directa)
-- Cambios a RLS
-- Borrar/renombrar MEXINTLI HQ
+- No tocar RLS ni esquema DB (no es necesario).
+- No tocar `assertSuperAdmin` (sigue lanzando 401/403, eso es correcto).
+- No tocar `getTenantOwners` (ya tiene try/catch del fix anterior).
+
+## Acción requerida del usuario antes de probar
+
+**Re-loguearte** en `/login` con `jtmenesesg@gmail.com`. Los 401 que ves son por sesión expirada — sin login fresco, ningún fix de código va a funcionar porque el middleware rechaza la request antes de llegar al handler.
 
 ## Verificación post-cambio
 
-1. `npx tsc --noEmit` pasa
-2. `/admin/tenants` muestra empty state (MEXINTLI HQ oculto)
-3. Crear tenant nuevo desde "+ Nuevo tenant" aparece en la lista
-4. Re-login → `/admin/tenants` sin 401 ni crash en consola
-5. `/select-tenant` no muestra MEXINTLI HQ al super_admin
+1. `npx tsc --noEmit` pasa.
+2. Re-login → ir a `/admin/tenants/new` → completar wizard con un email **nuevo** → debe crear tenant y redirigir a `/admin/tenants/<uuid-real>` sin errores en consola.
+3. Repetir con un email **ya existente** → debe reusar el usuario y crear el tenant igualmente.
+4. Repetir con password de 5 caracteres (forzar error de Supabase) → debe mostrar el mensaje real de Supabase en el banner rojo del paso 4, **sin** crash de UUID.
+5. Visitar manualmente `/admin/tenants/undefined` → debe mostrar el empty state, sin 400 a Supabase REST.
